@@ -737,6 +737,89 @@
             alert('Equipment listed successfully!');
         }
 
+        // Add this function to the equipments.html script section
+        function rentEquipment(equipmentId) {
+            const equipmentListings = JSON.parse(localStorage.getItem('equipmentListings') || '[]');
+            const equipment = equipmentListings.find(item => item.id === equipmentId);
+            
+            if (!equipment) {
+                alert('Equipment not found!');
+                return;
+            }
+        
+            // Check if user is trying to rent their own equipment
+            if (equipment.ownerId === currentUser.id) {
+                alert('You cannot rent your own equipment!');
+                return;
+            }
+        
+            // Get rental duration from user
+            const duration = prompt('Enter rental duration (in days):', '3');
+            if (!duration || isNaN(duration) || duration < 1) {
+                alert('Please enter a valid duration!');
+                return;
+            }
+        
+            // Calculate total cost
+            const totalAmount = equipment.price * parseInt(duration);
+            
+            // Confirm rental
+            const confirmRental = confirm(
+                `Confirm Rental:\n\n` +
+                `Equipment: ${equipment.name}\n` +
+                `Duration: ${duration} days\n` +
+                `Daily Rate: ₹${equipment.price}\n` +
+                `Total Amount: ₹${totalAmount}\n\n` +
+                `Click OK to proceed with rental.`
+            );
+        
+            if (!confirmRental) return;
+        
+            // Create rental record
+            const rental = {
+                id: 'rental_' + Date.now(),
+                userId: currentUser.id,
+                equipmentId: equipment.id,
+                name: equipment.name,
+                description: equipment.description,
+                image: equipment.image,
+                rentalDate: new Date().toISOString(),
+                duration: parseInt(duration),
+                totalAmount: totalAmount,
+                location: equipment.location,
+                ownerId: equipment.ownerId,
+                ownerName: equipment.ownerName,
+                status: 'active',
+                type: 'equipment'
+            };
+        
+            // Save to rentals
+            const equipmentRentals = JSON.parse(localStorage.getItem('equipmentRentals') || '[]');
+            equipmentRentals.push(rental);
+            localStorage.setItem('equipmentRentals', JSON.stringify(equipmentRentals));
+        
+            // Award GreenPoints for renting
+            awardRentalPoints(currentUser.id);
+        
+            alert(`Successfully rented "${equipment.name}" for ${duration} days! Total: ₹${totalAmount}`);
+        }
+        
+        // Function to award rental points
+        function awardRentalPoints(userId) {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = users.findIndex(u => u.id === userId);
+            
+            if (userIndex !== -1) {
+                if (!users[userIndex].greenPoints) users[userIndex].greenPoints = 0;
+                users[userIndex].greenPoints += 5; // 5 points per rental
+                
+                // Update current user
+                currentUser.greenPoints = users[userIndex].greenPoints;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+        }
+
         // Initial load
         loadEquipmentListings();
     </script>

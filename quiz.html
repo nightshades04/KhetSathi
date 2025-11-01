@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KhetSathi - AgriQuest</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #2e7d32;
+            --primary-light: #4caf50;
+            --primary-dark: #1b5e20;
+            --primary-bg-light: #e8f5e9; /* Light green for backgrounds */
+            --secondary: #ff9800;
+            --secondary-light: #fff3e0; /* Light orange for backgrounds */
+            --light: #f5f5f5;
+            --dark: #333;
+            --gray: #6c757d;
+            --white: #ffffff;
+            --border-color: #e0e0e0;
+            
+            --success: #2e7d32;
+            --success-light: #e8f5e9;
+
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 70px;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--white);
+            color: var(--dark);
+            transition: all 0.3s;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary-dark);
+        }
+
+        .logo i {
+            font-size: 24px;
+        }
+
+        .logo h1 {
+            font-size: 20px;
+            white-space: nowrap;
+            overflow: hidden;
+            font-weight: 600;
+        }
+
+        .sidebar.collapsed .logo h1 {
+            display: none;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        .toggle-btn:hover {
+            color: var(--dark);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: var(--gray);
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: var(--primary-bg-light);
+            color: var(--primary-dark);
+            border-left-color: var(--primary);
+        }
+        .menu-item:hover {
+            transform: translateX(2px);
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .menu-text {
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed .menu-text {
+            display: none;
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+        }
+
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        .top-bar {
+            background: var(--white);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .user-profile:hover {
+            background: var(--light);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+        
+        /* --- Buttons --- */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover {
+            background: var(--primary-light);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        .btn-outline:hover {
+            background: var(--primary-bg-light);
+        }
+        .btn:disabled {
+            background: var(--gray);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* --- Page Styles --- */
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .quiz-title {
+            font-size: 32px;
+            color: var(--primary-dark);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .quiz-subtitle {
+            color: var(--gray);
+            font-size: 18px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .quiz-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .quiz-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .quiz-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .quiz-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--primary-bg-light); /* Updated */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .quiz-icon i {
+            font-size: 30px;
+            color: var(--primary); /* Updated */
+        }
+
+        .quiz-card h3 {
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .quiz-card p {
+            color: var(--gray);
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        /* --- Stats / Recent --- */
+        .quiz-stats, .recent-quizzes {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            margin-bottom: 40px;
+        }
+
+        .stats-title, .section-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: var(--primary-dark);
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: var(--light);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .quiz-list {
+            list-style: none;
+        }
+
+        .quiz-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quiz-item:last-child {
+            border-bottom: none;
+        }
+
+        .quiz-info h4 {
+            margin-bottom: 5px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .quiz-info p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .quiz-score {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        /* --- Modal Styles --- */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+        }
+
+        .quiz-question {
+            margin-bottom: 25px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .options-list {
+            list-style: none;
+        }
+
+        .option {
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .option:hover {
+            background: var(--light);
+            border-color: var(--gray);
+        }
+
+        .option.selected {
+            background: var(--primary-bg-light);
+            color: var(--primary-dark);
+            border-color: var(--primary);
+            font-weight: 500;
+        }
+
+        .quiz-progress {
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 5px;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .quiz-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+        }
+
+        /* --- Results Screen --- */
+        .results-container {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .results-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--success-light); /* Updated */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .results-icon i {
+            font-size: 40px;
+            color: var(--success); /* Updated */
+        }
+
+        .results-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .results-score {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .results-message {
+            color: var(--gray);
+            margin-bottom: 25px;
+            font-size: 16px;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: var(--sidebar-collapsed-width);
+            }
+            
+            .sidebar .logo h1,
+            .sidebar .menu-text {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: var(--sidebar-collapsed-width);
+            }
+            
+            .user-name {
+                display: none;
+            }
+            
+            .quiz-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .logo-img {
+                width: 30px; 
+                height: 30px;
+                object-fit: contain; /* Prevents stretching */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="logo.jpeg" alt="KhetSathi Logo" class="logo-img">
+                <h1>KhetSathi</h1>
+            </div>
+            <button class="toggle-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span class="menu-text">Dashboard</span>
+            </a>
+            <a href="equipments.html" class="menu-item">
+                <i class="fas fa-tractor"></i>
+                <span class="menu-text">Equipments</span>
+            </a>
+            <a href="byproducts.html" class="menu-item">
+                <i class="fas fa-recycle"></i>
+                <span class="menu-text">ByProducts</span>
+            </a>
+            <a href="quiz.html" class="menu-item active">
+                <i class="fas fa-question-circle"></i>
+                <span class="menu-text">Quiz</span>
+            </a>
+            <a href="mylistings.html" class="menu-item">
+                <i class="fas fa-list"></i>
+                <span class="menu-text">My Listings</span>
+            </a>
+            <a href="purchases.html" class="menu-item">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="menu-text">Purchases</span>
+            </a>
+            <a href="community.html" class="menu-item">
+                <i class="fas fa-comments"></i>
+                <span class="menu-text">Community Chat</span>
+            </a>
+            <a href="greenpoints.html" class="menu-item">
+                <i class="fas fa-award"></i>
+                <span class="menu-text">GreenPoints</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">AgriQuest</h1>
+            <div class="user-profile" onclick="window.location.href='profile.html'">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <div class="user-name" id="user-name">User</div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="quiz-header">
+                <h1 class="quiz-title">Test Your Farming Knowledge</h1>
+                <p class="quiz-subtitle">Take quizzes on sustainable farming practices and earn GreenPoints for correct answers!</p>
+            </div>
+
+            <div class="quiz-cards">
+                <div class="quiz-card">
+                    <div class="quiz-icon">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <h3>Sustainable Farming</h3>
+                    <p>Test your knowledge about eco-friendly farming practices and sustainable agriculture.</p>
+                    <button class="btn btn-primary" onclick="startQuiz('sustainable')">Start Quiz</button>
+                </div>
+                <div class="quiz-card">
+                    <div class="quiz-icon">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <h3>Water Conservation</h3>
+                    <p>Learn about water-saving techniques and efficient irrigation methods in agriculture.</p>
+                    <button class="btn btn-primary" onclick="startQuiz('water')">Start Quiz</button>
+                </div>
+                <div class="quiz-card">
+                    <div class="quiz-icon">
+                        <i class="fas fa-recycle"></i>
+                    </div>
+                    <h3>Waste Management</h3>
+                    <p>Discover how to properly manage agricultural waste and turn it into valuable resources.</p>
+                    <button class="btn btn-primary" onclick="startQuiz('waste')">Start Quiz</button>
+                </div>
+            </div>
+
+            <div class="quiz-stats">
+                <h2 class="stats-title">Your Quiz Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="quizzes-taken">0</div>
+                        <div class="stat-label">Quizzes Taken</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="average-score">0%</div>
+                        <div class="stat-label">Average Score</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="points-earned">0</div>
+                        <div class="stat-label">Points Earned</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="correct-answers">0</div>
+                        <div class="stat-label">Correct Answers</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recent-quizzes">
+                <h2 class="section-title">Recent Quiz Attempts</h2>
+                <ul class="quiz-list" id="recent-quizzes">
+                    <!-- Recent quizzes will be dynamically generated here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Modal -->
+    <div class="modal" id="quiz-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="quiz-modal-title">Quiz</h2>
+                <button class="close-btn" id="close-quiz-modal">&times;</button>
+            </div>
+            <div id="quiz-content">
+                <!-- Quiz content will be dynamically generated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) {
+            window.location.href = 'auth.html';
+        } else {
+            // Display user info
+            document.getElementById('user-name').textContent = currentUser.username;
+            document.getElementById('user-avatar').textContent = currentUser.username.charAt(0).toUpperCase();
+        }
+
+        // Sidebar toggle
+        document.querySelector('.toggle-btn').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+            document.querySelector('.main-content').classList.toggle('expanded');
+        });
+
+        // Quiz data
+        const quizData = {
+            sustainable: {
+                title: "Sustainable Farming Practices",
+                questions: [
+                    {
+                        question: "What is the primary goal of sustainable agriculture?",
+                        options: [
+                            "Maximizing crop yield at any cost",
+                            "Balancing environmental health, economic profitability, and social equity",
+                            "Using only organic methods regardless of effectiveness",
+                            "Eliminating all pesticide use"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        question: "Which practice helps improve soil health in sustainable farming?",
+                        options: [
+                            "Monocropping",
+                            "Crop rotation",
+                            "Excessive tilling",
+                            "Using synthetic fertilizers only"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        question: "What is integrated pest management (IPM)?",
+                        options: [
+                            "Using the strongest pesticides available",
+                            "A holistic approach to pest control that minimizes environmental impact",
+                            "Eliminating all pests from the farm",
+                            "Only using organic pesticides"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        question: "Which of these is a key principle of sustainable agriculture?",
+                        options: [
+                            "Maximizing short-term profits",
+                            "Conserving water resources",
+                            "Using only traditional farming methods",
+                            "Avoiding all modern technology"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        question: "How does cover cropping benefit sustainable farming?",
+                        options: [
+                            "It increases the need for fertilizers",
+                            "It prevents soil erosion and improves soil fertility",
+                            "It requires more water than regular crops",
+                            "It attracts more pests to the farm"
+                        ],
+                        correct: 1
+                    }
+                ]
+            },
+            water: {
+                title: "Water Conservation in Agriculture",
+                questions: [
+                    {
+                        question: "Which irrigation method is most water-efficient?",
+                        options: [
+                            "Flood irrigation",
+                            "Sprinkler irrigation",
+                            "Drip irrigation",
+                            "Furrow irrigation"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        question: "What is the purpose of rainwater harvesting in agriculture?",
+                        options: [
+                            "To increase water bills",
+                            "To collect and store rainwater for agricultural use",
+                            "To create decorative water features",
+                            "To divert water away from crops"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        question: "Which crop is typically the most water-intensive?",
+                        options: [
+                            "Millet",
+                            "Rice",
+                            "Barley",
+                            "Chickpea"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        question: "What is mulching used for in water conservation?",
+                        options: [
+                            "To increase water evaporation from soil",
+                            "To reduce soil temperature and water evaporation",
+                            "To attract more rainfall",
+                            "To filter water for irrigation"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        question: "Which practice helps in reducing water usage in farming?",
+                        options: [
+                            "Planting water-intensive crops in dry regions",
+                            "Scheduling irrigation based on weather conditions",
+                            "Watering during the hottest part of the day",
+                            "Using high-pressure sprinklers"
+                        ],
+                        correct: 1
+                    }
+                ]
+            },
+            waste: {
+                title: "Agricultural Waste Management",
+                questions: [
+                    {
+                        question: "What is the best way to manage crop residues?",
+                        options: [
+                            "Burning them in the field",
+                            "Incorporating them into the soil as organic matter",
+                            "Disposing them in landfills",
+                            "Letting them decompose in open piles"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        question: "How can agricultural waste be converted into valuable products?",
+                        options: [
+                            "By composting to create organic fertilizer",
+                            "By dumping in rivers",
+                            "By storing indefinitely",
+                            "By exporting to other countries"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        question: "What is biogas production from agricultural waste?",
+                        options: [
+                            "A method to increase waste volume",
+                            "A process that converts organic waste into renewable energy",
+                            "A technique to make waste smell better",
+                            "A way to transport waste more efficiently"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        question: "Which of these is an example of agricultural waste upcycling?",
+                        options: [
+                            "Using rice husks as fuel or building material",
+                            "Burning sugarcane bagasse",
+                            "Throwing away fruit peels",
+                            "Discarding damaged crops"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        question: "What is the environmental benefit of proper agricultural waste management?",
+                        options: [
+                            "Increased air pollution",
+                            "Reduced greenhouse gas emissions",
+                            "Higher water consumption",
+                            "More land required for disposal"
+                        ],
+                        correct: 1
+                    }
+                ]
+            }
+        };
+
+        let currentQuiz = null;
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let quizStats = JSON.parse(localStorage.getItem('quizStats') || '{}');
+
+        // Initialize user quiz stats if not exists
+        if (!quizStats[currentUser.id]) {
+            quizStats[currentUser.id] = {
+                quizzesTaken: 0,
+                totalScore: 0,
+                pointsEarned: 0,
+                correctAnswers: 0,
+                totalQuestions: 0,
+                recentQuizzes: []
+            };
+            localStorage.setItem('quizStats', JSON.stringify(quizStats));
+        }
+
+        // Load quiz statistics
+        function loadQuizStats() {
+            const userStats = quizStats[currentUser.id];
+            document.getElementById('quizzes-taken').textContent = userStats.quizzesTaken;
+            document.getElementById('average-score').textContent = userStats.quizzesTaken > 0 
+                ? Math.round((userStats.totalScore / userStats.quizzesTaken)) + '%' 
+                : '0%';
+            document.getElementById('points-earned').textContent = userStats.pointsEarned;
+            document.getElementById('correct-answers').textContent = userStats.correctAnswers;
+
+            // Load recent quizzes
+            const recentQuizzesContainer = document.getElementById('recent-quizzes');
+            if (userStats.recentQuizzes.length === 0) {
+                recentQuizzesContainer.innerHTML = '<p>No quiz attempts yet. Start a quiz to see your results here!</p>';
+            } else {
+                recentQuizzesContainer.innerHTML = userStats.recentQuizzes.map(quiz => `
+                    <li class="quiz-item">
+                        <div class="quiz-info">
+                            <h4>${quiz.title}</h4>
+                            <p>Completed on ${new Date(quiz.date).toLocaleDateString()}</p>
+                        </div>
+                        <div class="quiz-score">${quiz.score}%</div>
+                    </li>
+                `).join('');
+            }
+        }
+
+        // Start quiz
+        function startQuiz(quizType) {
+            currentQuiz = quizData[quizType];
+            currentQuestionIndex = 0;
+            userAnswers = [];
+            
+            document.getElementById('quiz-modal-title').textContent = currentQuiz.title;
+            showQuestion();
+            document.getElementById('quiz-modal').style.display = 'flex';
+        }
+
+        // Show current question
+        function showQuestion() {
+            const question = currentQuiz.questions[currentQuestionIndex];
+            const progress = ((currentQuestionIndex) / currentQuiz.questions.length) * 100;
+            
+            document.getElementById('quiz-content').innerHTML = `
+                <div class="quiz-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="progress-text">Question ${currentQuestionIndex + 1} of ${currentQuiz.questions.length}</div>
+                </div>
+                <div class="quiz-question">
+                    <div class="question-text">${question.question}</div>
+                    <ul class="options-list">
+                        ${question.options.map((option, index) => `
+                            <li class="option" data-index="${index}">${option}</li>
+                        `).join('')}
+                    </ul>
+                </div>
+                <div class="quiz-actions">
+                    <button class="btn btn-outline" id="prev-btn" ${currentQuestionIndex === 0 ? 'disabled' : ''}>Previous</button>
+                    <button class="btn btn-primary" id="next-btn">${currentQuestionIndex === currentQuiz.questions.length - 1 ? 'Finish Quiz' : 'Next'}</button>
+                </div>
+            `;
+
+            // Add event listeners to options
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    userAnswers[currentQuestionIndex] = parseInt(this.getAttribute('data-index'));
+                });
+            });
+
+            // Add event listeners to buttons
+            document.getElementById('prev-btn').addEventListener('click', goToPreviousQuestion);
+            document.getElementById('next-btn').addEventListener('click', goToNextQuestion);
+
+            // Restore previous answer if exists
+            if (userAnswers[currentQuestionIndex] !== undefined) {
+                document.querySelectorAll('.option')[userAnswers[currentQuestionIndex]].classList.add('selected');
+            }
+        }
+
+        // Go to previous question
+        function goToPreviousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                showQuestion();
+            }
+        }
+
+        // Go to next question or finish quiz
+        function goToNextQuestion() {
+            if (userAnswers[currentQuestionIndex] === undefined) {
+                alert('Please select an answer before proceeding.');
+                return;
+            }
+
+            if (currentQuestionIndex < currentQuiz.questions.length - 1) {
+                currentQuestionIndex++;
+                showQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        // Finish quiz and show results
+        function finishQuiz() {
+            let correctCount = 0;
+            
+            currentQuiz.questions.forEach((question, index) => {
+                if (userAnswers[index] === question.correct) {
+                    correctCount++;
+                }
+            });
+            
+            const score = Math.round((correctCount / currentQuiz.questions.length) * 100);
+            const pointsEarned = Math.round(score / 10) * 5; // 5 points per 10% score
+            
+            // Update user stats
+            const userStats = quizStats[currentUser.id];
+            userStats.quizzesTaken++;
+            userStats.totalScore += score;
+            userStats.pointsEarned += pointsEarned;
+            userStats.correctAnswers += correctCount;
+            userStats.totalQuestions += currentQuiz.questions.length;
+            
+            // Add to recent quizzes (limit to 5 most recent)
+            userStats.recentQuizzes.unshift({
+                title: currentQuiz.title,
+                score: score,
+                date: new Date().toISOString()
+            });
+            if (userStats.recentQuizzes.length > 5) {
+                userStats.recentQuizzes.pop();
+            }
+            
+            // Update GreenPoints in user profile
+            if (!currentUser.greenPoints) currentUser.greenPoints = 0;
+            currentUser.greenPoints += pointsEarned;
+            
+            // Save to localStorage
+            localStorage.setItem('quizStats', JSON.stringify(quizStats));
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            // Update users array
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            if (userIndex !== -1) {
+                users[userIndex].greenPoints = currentUser.greenPoints;
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+            
+            // Show results
+            document.getElementById('quiz-content').innerHTML = `
+                <div class="results-container">
+                    <div class="results-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h2 class="results-title">Quiz Completed!</h2>
+                    <div class="results-score">${score}%</div>
+                    <p class="results-message">You answered ${correctCount} out of ${currentQuiz.questions.length} questions correctly.</p>
+                    <p class="results-message">You earned <strong>${pointsEarned} GreenPoints</strong>!</p>
+                    <div class="quiz-actions">
+                        <button class="btn btn-outline" onclick="closeQuizModal()">Close</button>
+                        <button class="btn btn-primary" onclick="restartQuiz()">Take Another Quiz</button>
+                    </div>
+                </div>
+            `;
+            
+            // Reload stats
+            loadQuizStats();
+        }
+
+        // Restart quiz
+        function restartQuiz() {
+            document.getElementById('quiz-modal').style.display = 'none';
+        }
+
+        // Close quiz modal
+        function closeQuizModal() {
+            document.getElementById('quiz-modal').style.display = 'none';
+        }
+
+        // Modal close functionality
+        document.getElementById('close-quiz-modal').addEventListener('click', closeQuizModal);
+        window.addEventListener('click', function(event) {
+            if (event.target === document.getElementById('quiz-modal')) {
+                closeQuizModal();
+            }
+        });
+
+        // Initial load
+        loadQuizStats();
+    </script>
+    <!-- AI Chatbot Integration -->
+    <script src="chatbot-integration.js"></script>
+</body>
+</html>

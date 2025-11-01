@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KhetSathi - GreenPoints & Badges</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #2e7d32;
+            --primary-light: #4caf50;
+            --primary-dark: #1b5e20;
+            --primary-bg-light: #e8f5e9; /* Light green for backgrounds */
+            --secondary: #ff9800;
+            --secondary-light: #fff3e0; /* Light orange for backgrounds */
+            --light: #f5f5f5;
+            --dark: #333;
+            --gray: #6c757d;
+            --white: #ffffff;
+            --border-color: #e0e0e0;
+            
+            --gold: #ffc107;
+            --silver: #c0c0c0;
+            --bronze: #cd7f32;
+
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 70px;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--white);
+            color: var(--dark);
+            transition: all 0.3s;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary-dark);
+        }
+
+        .logo i {
+            font-size: 24px;
+        }
+
+        .logo h1 {
+            font-size: 20px;
+            white-space: nowrap;
+            overflow: hidden;
+            font-weight: 600;
+        }
+
+        .sidebar.collapsed .logo h1 {
+            display: none;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        .toggle-btn:hover {
+            color: var(--dark);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: var(--gray);
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: var(--primary-bg-light);
+            color: var(--primary-dark);
+            border-left-color: var(--primary);
+        }
+        .menu-item:hover {
+            transform: translateX(2px);
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .menu-text {
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed .menu-text {
+            display: none;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+        }
+
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        .top-bar {
+            background: var(--white);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .user-profile:hover {
+            background: var(--light);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        /* --- Points Header --- */
+        .points-header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px; /* Updated */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Updated */
+            border: 1px solid var(--border-color); /* Added */
+        }
+
+        .total-points {
+            font-size: 48px;
+            font-weight: 700; /* Bolder */
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .points-label {
+            font-size: 18px;
+            color: var(--gray);
+            margin-bottom: 20px;
+        }
+
+        .level-indicator {
+            display: inline-block;
+            background: var(--secondary);
+            color: var(--white);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .points-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .points-card {
+            background: var(--white);
+            border-radius: 12px; /* Updated */
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Updated */
+            border: 1px solid var(--border-color); /* Added */
+        }
+
+        .points-card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .points-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-bg-light); /* Updated */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary); /* Updated */
+            font-size: 20px;
+        }
+
+        .points-card-title {
+            font-size: 18px;
+            color: var(--primary-dark);
+            margin-bottom: 5px;
+            font-weight: 600; /* Added */
+        }
+
+        .points-card-subtitle {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .points-value {
+            font-size: 32px;
+            font-weight: 700; /* Bolder */
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .progress-container {
+            margin-bottom: 15px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--border-color); /* Updated */
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .points-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: var(--light);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700; /* Bolder */
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        /* --- Sections --- */
+        .badges-section,
+        .leaderboard-section {
+            background: var(--white);
+            border-radius: 12px; /* Updated */
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Updated */
+            border: 1px solid var(--border-color); /* Added */
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            color: var(--primary-dark);
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color); /* Updated */
+            font-weight: 600; /* Added */
+        }
+
+        /* --- Badges --- */
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .badge-card {
+            background: var(--white);
+            border-radius: 12px; /* Updated */
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Updated */
+            transition: transform 0.3s;
+            border: 1px solid var(--border-color); /* Updated */
+        }
+
+        .badge-card.earned {
+            border-color: var(--secondary);
+        }
+
+        .badge-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .badge-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 30px;
+            color: var(--gray);
+        }
+
+        .badge-card.earned .badge-icon {
+            background: var(--primary-bg-light); /* Updated */
+            color: var(--primary); /* Updated */
+        }
+
+        .badge-name {
+            font-weight: 600; /* Bolder */
+            margin-bottom: 5px;
+            color: var(--primary-dark);
+        }
+
+        .badge-desc {
+            font-size: 12px;
+            color: var(--gray);
+            margin-bottom: 10px;
+        }
+
+        .badge-points {
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .badge-status {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            margin-top: 5px;
+            display: inline-block;
+            font-weight: 500; /* Added */
+        }
+
+        .status-earned {
+            background: var(--primary-bg-light);
+            color: var(--primary);
+        }
+
+        .status-locked {
+            background: var(--light);
+            color: var(--gray);
+        }
+
+        /* --- Leaderboard --- */
+        .leaderboard-list {
+            list-style: none;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+
+        .leaderboard-rank {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700; /* Bolder */
+            color: var(--gray);
+            flex-shrink: 0;
+        }
+
+        .leaderboard-item:nth-child(1) .leaderboard-rank {
+            background: var(--gold);
+            color: var(--dark);
+        }
+
+        .leaderboard-item:nth-child(2) .leaderboard-rank {
+            background: var(--silver);
+            color: var(--dark);
+        }
+
+        .leaderboard-item:nth-child(3) .leaderboard-rank {
+            background: var(--bronze);
+            color: var(--white);
+        }
+
+        .leaderboard-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary); /* Updated */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 700; /* Bolder */
+            flex-shrink: 0;
+        }
+
+        .leaderboard-info {
+            flex: 1;
+        }
+
+        .leaderboard-name {
+            font-weight: 600; /* Bolder */
+            margin-bottom: 2px;
+        }
+
+        .leaderboard-points {
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .logo-img {
+            width: 30px; 
+            height: 30px;
+            object-fit: contain; /* Prevents stretching */
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: var(--sidebar-collapsed-width);
+            }
+            
+            .sidebar .logo h1,
+            .sidebar .menu-text {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: var(--sidebar-collapsed-width);
+            }
+            
+            .user-name {
+                display: none;
+            }
+            
+            .points-breakdown {
+                grid-template-columns: 1fr;
+            }
+            
+            .badges-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .points-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="logo.jpeg" alt="KhetSathi Logo" class="logo-img">
+                <h1>KhetSathi</h1>
+            </div>
+            <button class="toggle-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span class="menu-text">Dashboard</span>
+            </a>
+            <a href="equipments.html" class="menu-item">
+                <i class="fas fa-tractor"></i>
+                <span class="menu-text">Equipments</span>
+            </a>
+            <a href="byproducts.html" class="menu-item">
+                <i class="fas fa-recycle"></i>
+                <span class="menu-text">ByProducts</span>
+            </a>
+            <a href="quiz.html" class="menu-item">
+                <i class="fas fa-question-circle"></i>
+                <span class="menu-text">Quiz</span>
+            </a>
+            <a href="mylistings.html" class="menu-item">
+                <i class="fas fa-list"></i>
+                <span class="menu-text">My Listings</span>
+            </a>
+            <a href="purchases.html" class="menu-item">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="menu-text">Purchases</span>
+            </a>
+            <a href="community.html" class="menu-item">
+                <i class="fas fa-comments"></i>
+                <span class="menu-text">Community Chat</span>
+            </a>
+            <a href="greenpoints.html" class="menu-item active">
+                <i class="fas fa-award"></i>
+                <span class="menu-text">GreenPoints</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">GreenPoints & Badges</h1>
+            <div class="user-profile" onclick="window.location.href='profile.html'">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <div class="user-name" id="user-name">User</div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <!-- Points Header -->
+            <div class="points-header">
+                <div class="total-points" id="total-points">0</div>
+                <div class="points-label">Total GreenPoints Earned</div>
+                <div class="level-indicator" id="level-indicator">Beginner</div>
+            </div>
+
+            <!-- Points Breakdown -->
+            <div class="points-breakdown">
+                <!-- Quiz Points -->
+                <div class="points-card">
+                    <div class="points-card-header">
+                        <div class="points-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <div>
+                            <div class="points-card-title">Quiz Points</div>
+                            <div class="points-card-subtitle">Earned from completing quizzes</div>
+                        </div>
+                    </div>
+                    <div class="points-value" id="quiz-points">0</div>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>Progress to next level</span>
+                            <span id="quiz-progress-text">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="quiz-progress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="points-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="quizzes-taken">0</div>
+                            <div class="stat-label">Quizzes Taken</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="avg-quiz-score">0%</div>
+                            <div class="stat-label">Average Score</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selling Points -->
+                <div class="points-card">
+                    <div class="points-card-header">
+                        <div class="points-icon">
+                            <i class="fas fa-recycle"></i>
+                        </div>
+                        <div>
+                            <div class="points-card-title">Selling Points</div>
+                            <div class="points-card-subtitle">Earned from selling byproducts</div>
+                        </div>
+                    </div>
+                    <div class="points-value" id="selling-points">0</div>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>Progress to next level</span>
+                            <span id="selling-progress-text">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="selling-progress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="points-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="byproducts-sold">0</div>
+                            <div class="stat-label">ByProducts Sold</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="total-sales">₹0</div>
+                            <div class="stat-label">Total Sales</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Renting Points -->
+                <div class="points-card">
+                    <div class="points-card-header">
+                        <div class="points-icon">
+                            <i class="fas fa-tractor"></i>
+                        </div>
+                        <div>
+                            <div class="points-card-title">Renting Points</div>
+                            <div class="points-card-subtitle">Earned from equipment rentals</div>
+                        </div>
+                    </div>
+                    <div class="points-value" id="renting-points">0</div>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>Progress to next level</span>
+                            <span id="renting-progress-text">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="renting-progress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="points-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="equipment-rented">0</div>
+                            <div class="stat-label">Equipment Rented</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="total-rentals">₹0</div>
+                            <div class="stat-label">Total Rentals</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Badges Section -->
+            <div class="badges-section">
+                <h2 class="section-title">Your Badges</h2>
+                <div class="badges-grid" id="badges-grid">
+                    <!-- Badges will be dynamically generated here -->
+                </div>
+            </div>
+
+            <!-- Leaderboard Section -->
+            <div class="leaderboard-section">
+                <h2 class="section-title">Top Farmers</h2>
+                <ul class="leaderboard-list" id="leaderboard-list">
+                    <!-- Leaderboard will be dynamically generated here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) {
+            window.location.href = 'auth.html';
+        } else {
+            // Display user info
+            document.getElementById('user-name').textContent = currentUser.username;
+            document.getElementById('user-avatar').textContent = currentUser.username.charAt(0).toUpperCase();
+        }
+
+        // Sidebar toggle
+        document.querySelector('.toggle-btn').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+            document.querySelector('.main-content').classList.toggle('expanded');
+        });
+
+        // Points system configuration
+        const pointsConfig = {
+            // Quiz points: 5 points per 10% score
+            quiz: {
+                pointsPer10Percent: 5,
+                levels: [
+                    { points: 0, name: "Beginner", nextLevel: 50 },
+                    { points: 50, name: "Quiz Enthusiast", nextLevel: 200 },
+                    { points: 200, name: "Quiz Master", nextLevel: 500 },
+                    { points: 500, name: "Quiz Champion", nextLevel: null }
+                ]
+            },
+            // Selling points: 15 points per byproduct sold
+            selling: {
+                pointsPerSale: 15,
+                levels: [
+                    { points: 0, name: "Novice Seller", nextLevel: 75 },
+                    { points: 75, name: "Active Seller", nextLevel: 300 },
+                    { points: 300, name: "Top Seller", nextLevel: 750 },
+                    { points: 750, name: "Market Leader", nextLevel: null }
+                ]
+            },
+            // Renting points: 10 points per equipment rented
+            renting: {
+                pointsPerRental: 10,
+                levels: [
+                    { points: 0, name: "New Lender", nextLevel: 50 },
+                    { points: 50, name: "Active Lender", nextLevel: 200 },
+                    { points: 200, name: "Sharing Champion", nextLevel: 500 },
+                    { points: 500, name: "Community Hero", nextLevel: null }
+                ]
+            },
+            // Overall levels
+            overall: [
+                { points: 0, name: "Beginner", nextLevel: 100 },
+                { points: 100, name: "Green Enthusiast", nextLevel: 500 },
+                { points: 500, name: "Eco Warrior", nextLevel: 1000 },
+                { points: 1000, name: "Sustainability Champion", nextLevel: 2000 },
+                { points: 2000, name: "Planet Protector", nextLevel: null }
+            ]
+        };
+
+        // Badges configuration
+        const badgesConfig = [
+            // Quiz Badges
+            {
+                id: 'quiz_novice',
+                name: 'Quiz Novice',
+                description: 'Complete your first quiz',
+                icon: 'fas fa-graduation-cap',
+                category: 'quiz',
+                requirement: { type: 'quizzes_taken', value: 1 },
+                points: 10
+            },
+            {
+                id: 'quiz_enthusiast',
+                name: 'Quiz Enthusiast',
+                description: 'Complete 5 quizzes',
+                icon: 'fas fa-brain',
+                category: 'quiz',
+                requirement: { type: 'quizzes_taken', value: 5 },
+                points: 25
+            },
+            {
+                id: 'quiz_master',
+                name: 'Quiz Master',
+                description: 'Complete 10 quizzes with 80%+ average',
+                icon: 'fas fa-crown',
+                category: 'quiz',
+                requirement: { type: 'quizzes_master', value: 10 },
+                points: 50
+            },
+            // Selling Badges
+            {
+                id: 'first_sale',
+                name: 'First Sale',
+                description: 'Sell your first byproduct',
+                icon: 'fas fa-hand-holding-usd',
+                category: 'selling',
+                requirement: { type: 'byproducts_sold', value: 1 },
+                points: 15
+            },
+            {
+                id: 'growing_seller',
+                name: 'Growing Seller',
+                description: 'Sell 5 byproducts',
+                icon: 'fas fa-chart-line',
+                category: 'selling',
+                requirement: { type: 'byproducts_sold', value: 5 },
+                points: 40
+            },
+            {
+                id: 'top_seller',
+                name: 'Top Seller',
+                description: 'Sell 10 byproducts',
+                icon: 'fas fa-trophy',
+                category: 'selling',
+                requirement: { type: 'byproducts_sold', value: 10 },
+                points: 75
+            },
+            // Renting Badges
+            {
+                id: 'first_rental',
+                name: 'First Rental',
+                description: 'Rent out equipment for the first time',
+                icon: 'fas fa-handshake',
+                category: 'renting',
+                requirement: { type: 'equipment_rented', value: 1 },
+                points: 10
+            },
+            {
+                id: 'frequent_lender',
+                name: 'Frequent Lender',
+                description: 'Rent out equipment 5 times',
+                icon: 'fas fa-users',
+                category: 'renting',
+                requirement: { type: 'equipment_rented', value: 5 },
+                points: 35
+            },
+            {
+                id: 'sharing_champion',
+                name: 'Sharing Champion',
+                description: 'Rent out equipment 10 times',
+                icon: 'fas fa-award',
+                category: 'renting',
+                requirement: { type: 'equipment_rented', value: 10 },
+                points: 60
+            },
+            // Overall Badges
+            {
+                id: 'green_beginner',
+                name: 'Green Beginner',
+                description: 'Earn 50 total GreenPoints',
+                icon: 'fas fa-seedling',
+                category: 'overall',
+                requirement: { type: 'total_points', value: 50 },
+                points: 0
+            },
+            {
+                id: 'green_enthusiast',
+                name: 'Green Enthusiast',
+                description: 'Earn 200 total GreenPoints',
+                icon: 'fas fa-leaf',
+                category: 'overall',
+                requirement: { type: 'total_points', value: 200 },
+                points: 0
+            },
+            {
+                id: 'eco_warrior',
+                name: 'Eco Warrior',
+                description: 'Earn 500 total GreenPoints',
+                icon: 'fas fa-earth-americas',
+                category: 'overall',
+                requirement: { type: 'total_points', value: 500 },
+                points: 0
+            }
+        ];
+
+        // Calculate user points and stats
+        function calculateUserStats() {
+            const userStats = {
+                quiz: { points: 0, quizzesTaken: 0, totalScore: 0, averageScore: 0 },
+                selling: { points: 0, byproductsSold: 0, totalSales: 0 },
+                renting: { points: 0, equipmentRented: 0, totalRentals: 0 },
+                totalPoints: 0
+            };
+
+            // Calculate quiz points
+            const quizStats = JSON.parse(localStorage.getItem('quizStats') || '{}');
+            if (quizStats[currentUser.id]) {
+                const userQuizStats = quizStats[currentUser.id];
+                userStats.quiz.quizzesTaken = userQuizStats.quizzesTaken || 0;
+                userStats.quiz.totalScore = userQuizStats.totalScore || 0;
+                userStats.quiz.averageScore = userStats.quiz.quizzesTaken > 0 ? 
+                    Math.round(userStats.quiz.totalScore / userStats.quiz.quizzesTaken) : 0;
+                userStats.quiz.points = userQuizStats.pointsEarned || 0;
+            }
+
+            // Calculate selling points
+            const byproductListings = JSON.parse(localStorage.getItem('byproductListings') || '[]');
+            const userByproducts = byproductListings.filter(item => item.ownerId === currentUser.id);
+            userStats.selling.byproductsSold = userByproducts.length;
+            userStats.selling.totalSales = userByproducts.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
+            userStats.selling.points = userStats.selling.byproductsSold * pointsConfig.selling.pointsPerSale;
+
+            // Calculate renting points
+            const equipmentListings = JSON.parse(localStorage.getItem('equipmentListings') || '[]');
+            const userEquipment = equipmentListings.filter(item => item.ownerId === currentUser.id);
+            userStats.renting.equipmentRented = userEquipment.length;
+            userStats.renting.totalRentals = userEquipment.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
+            userStats.renting.points = userStats.renting.equipmentRented * pointsConfig.renting.pointsPerRental;
+
+            // Calculate total points
+            userStats.totalPoints = userStats.quiz.points + userStats.selling.points + userStats.renting.points;
+
+            return userStats;
+        }
+
+        // Update user level and progress
+        function updateLevelAndProgress(stats) {
+            // Update total points
+            document.getElementById('total-points').textContent = stats.totalPoints;
+
+            // Update overall level
+            const overallLevel = getCurrentLevel(stats.totalPoints, pointsConfig.overall);
+            document.getElementById('level-indicator').textContent = overallLevel.name;
+
+            // Update quiz section
+            updateCategorySection('quiz', stats.quiz, pointsConfig.quiz);
+            document.getElementById('quizzes-taken').textContent = stats.quiz.quizzesTaken;
+            document.getElementById('avg-quiz-score').textContent = stats.quiz.averageScore + '%';
+
+            // Update selling section
+            updateCategorySection('selling', stats.selling, pointsConfig.selling);
+            document.getElementById('byproducts-sold').textContent = stats.selling.byproductsSold;
+            document.getElementById('total-sales').textContent = '₹' + stats.selling.totalSales;
+
+            // Update renting section
+            updateCategorySection('renting', stats.renting, pointsConfig.renting);
+            document.getElementById('equipment-rented').textContent = stats.renting.equipmentRented;
+            document.getElementById('total-rentals').textContent = '₹' + stats.renting.totalRentals;
+        }
+
+        function updateCategorySection(category, stats, config) {
+            const pointsElement = document.getElementById(`${category}-points`);
+            const progressElement = document.getElementById(`${category}-progress`);
+            const progressTextElement = document.getElementById(`${category}-progress-text`);
+
+            pointsElement.textContent = stats.points;
+
+            const currentLevel = getCurrentLevel(stats.points, config.levels);
+            if (currentLevel.nextLevel) {
+                const progress = ((stats.points - currentLevel.points) / (currentLevel.nextLevel - currentLevel.points)) * 100;
+                progressElement.style.width = Math.min(progress, 100) + '%';
+                progressTextElement.textContent = Math.round(progress) + '%';
+            } else {
+                progressElement.style.width = '100%';
+                progressTextElement.textContent = 'Max Level';
+            }
+        }
+
+        function getCurrentLevel(points, levels) {
+            for (let i = levels.length - 1; i >= 0; i--) {
+                if (points >= levels[i].points) {
+                    return levels[i];
+                }
+            }
+            return levels[0];
+        }
+
+        // Check and award badges
+        function checkAndAwardBadges(stats) {
+            const userBadges = JSON.parse(localStorage.getItem('userBadges') || '{}');
+            if (!userBadges[currentUser.id]) {
+                userBadges[currentUser.id] = [];
+            }
+
+            let newBadges = [];
+
+            badgesConfig.forEach(badge => {
+                if (!userBadges[currentUser.id].includes(badge.id)) {
+                    let earned = false;
+
+                    switch (badge.requirement.type) {
+                        case 'quizzes_taken':
+                            earned = stats.quiz.quizzesTaken >= badge.requirement.value;
+                            break;
+                        case 'quizzes_master':
+                            earned = stats.quiz.quizzesTaken >= badge.requirement.value && stats.quiz.averageScore >= 80;
+                            break;
+                        case 'byproducts_sold':
+                            earned = stats.selling.byproductsSold >= badge.requirement.value;
+                            break;
+                        case 'equipment_rented':
+                            earned = stats.renting.equipmentRented >= badge.requirement.value;
+                            break;
+                        case 'total_points':
+                            earned = stats.totalPoints >= badge.requirement.value;
+                            break;
+                    }
+
+                    if (earned) {
+                        userBadges[currentUser.id].push(badge.id);
+                        newBadges.push(badge);
+                    }
+                }
+            });
+
+            localStorage.setItem('userBadges', JSON.stringify(userBadges));
+            return newBadges;
+        }
+
+        // Display badges
+        function displayBadges(stats) {
+            const badgesGrid = document.getElementById('badges-grid');
+            const userBadges = JSON.parse(localStorage.getItem('userBadges') || '{}');
+            const earnedBadges = userBadges[currentUser.id] || [];
+
+            badgesGrid.innerHTML = badgesConfig.map(badge => {
+                const isEarned = earnedBadges.includes(badge.id);
+                return `
+                    <div class="badge-card ${isEarned ? 'earned' : ''}">
+                        <div class="badge-icon">
+                            <i class="${badge.icon}"></i>
+                        </div>
+                        <div class="badge-name">${badge.name}</div>
+                        <div class="badge-desc">${badge.description}</div>
+                        <div class="badge-points">${badge.points > 0 ? '+' + badge.points + ' points' : ''}</div>
+                        <div class="badge-status ${isEarned ? 'status-earned' : 'status-locked'}">
+                            ${isEarned ? 'Earned' : 'Locked'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Display leaderboard
+        function displayLeaderboard() {
+            const leaderboardList = document.getElementById('leaderboard-list');
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            
+            // Calculate points for all users
+            const userPoints = users.map(user => {
+                const stats = calculateUserStatsForUser(user);
+                return {
+                    username: user.username,
+                    points: stats.totalPoints,
+                    initial: user.username.charAt(0).toUpperCase()
+                };
+            });
+
+            // Sort by points (descending)
+            userPoints.sort((a, b) => b.points - a.points);
+
+            // Take top 10
+            const topUsers = userPoints.slice(0, 10);
+
+            leaderboardList.innerHTML = topUsers.map((user, index) => `
+                <li class="leaderboard-item">
+                    <div class="leaderboard-rank">${index + 1}</div>
+                    <div class="leaderboard-avatar">${user.initial}</div>
+                    <div class="leaderboard-info">
+                        <div class="leaderboard-name">${user.username}</div>
+                    </div>
+                    <div class="leaderboard-points">${user.points} pts</div>
+                </li>
+            `).join('');
+        }
+
+        // Helper function to calculate stats for any user
+        function calculateUserStatsForUser(user) {
+            const stats = {
+                quiz: { points: 0 },
+                selling: { points: 0, byproductsSold: 0 },
+                renting: { points: 0, equipmentRented: 0 },
+                totalPoints: 0
+            };
+
+            // Calculate quiz points
+            const quizStats = JSON.parse(localStorage.getItem('quizStats') || '{}');
+            if (quizStats[user.id]) {
+                stats.quiz.points = quizStats[user.id].pointsEarned || 0;
+            }
+
+            // Calculate selling points
+            const byproductListings = JSON.parse(localStorage.getItem('byproductListings') || '[]');
+            const userByproducts = byproductListings.filter(item => item.ownerId === user.id);
+            stats.selling.byproductsSold = userByproducts.length;
+            stats.selling.points = stats.selling.byproductsSold * pointsConfig.selling.pointsPerSale;
+
+            // Calculate renting points
+            const equipmentListings = JSON.parse(localStorage.getItem('equipmentListings') || '[]');
+            const userEquipment = equipmentListings.filter(item => item.ownerId === user.id);
+            stats.renting.equipmentRented = userEquipment.length;
+            stats.renting.points = stats.renting.equipmentRented * pointsConfig.renting.pointsPerRental;
+
+            // Calculate total points
+            stats.totalPoints = stats.quiz.points + stats.selling.points + stats.renting.points;
+
+            return stats;
+        }
+
+        // Initialize page
+        function initPage() {
+            const stats = calculateUserStats();
+            updateLevelAndProgress(stats);
+            const newBadges = checkAndAwardBadges(stats);
+            displayBadges(stats);
+            displayLeaderboard();
+
+            // Show notification for new badges
+            if (newBadges.length > 0) {
+                setTimeout(() => {
+                    alert(`Congratulations! You earned ${newBadges.length} new badge(s): ${newBadges.map(b => b.name).join(', ')}`);
+                }, 500);
+            }
+        }
+
+        // Initial load
+        initPage();
+    </script>
+</body>
+</html>

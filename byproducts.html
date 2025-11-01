@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KhetSathi - ByProducts Marketplace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #2e7d32;
+            --primary-light: #4caf50;
+            --primary-dark: #1b5e20;
+            --primary-bg-light: #e8f5e9; /* Light green for backgrounds */
+            --secondary: #ff9800;
+            --secondary-light: #fff3e0; /* Light orange for backgrounds */
+            --light: #f5f5f5;
+            --dark: #333;
+            --gray: #6c757d;
+            --white: #ffffff;
+            --border-color: #e0e0e0;
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 70px;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--white);
+            color: var(--dark);
+            transition: all 0.3s;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary-dark);
+        }
+
+        .logo i {
+            font-size: 24px;
+        }
+
+        .logo h1 {
+            font-size: 20px;
+            white-space: nowrap;
+            overflow: hidden;
+            font-weight: 600;
+        }
+
+        .sidebar.collapsed .logo h1 {
+            display: none;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        .toggle-btn:hover {
+            color: var(--dark);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: var(--gray);
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: var(--primary-bg-light);
+            color: var(--primary-dark);
+            border-left-color: var(--primary);
+        }
+        .menu-item:hover {
+            transform: translateX(2px);
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .menu-text {
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed .menu-text {
+            display: none;
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+        }
+
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        .top-bar {
+            background: var(--white);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .user-profile:hover {
+            background: var(--light);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover {
+            background: var(--primary-light);
+        }
+
+        /* --- Page Specific Styles --- */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .page-header h2 {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .byproducts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .byproduct-card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .byproduct-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            border-color: transparent;
+        }
+
+        .byproduct-image {
+            height: 180px;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+        }
+
+        .byproduct-image i {
+            font-size: 50px;
+        }
+
+        .byproduct-details {
+            padding: 20px;
+        }
+
+        .byproduct-name {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .byproduct-description {
+            color: var(--gray);
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-height: 45px;
+        }
+
+        .byproduct-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .byproduct-price {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        .byproduct-location {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* --- UI CHANGE: Separate classes for quantity and owner --- */
+        .byproduct-quantity {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 5px; /* Small space */
+        }
+        
+        .byproduct-owner {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 20px; /* More space before button */
+        }
+
+        .byproduct-card .btn {
+            width: 100%;
+            text-align: center;
+        }
+
+        /* --- Modal Styles --- */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+            transition: color 0.3s;
+        }
+        .close-btn:hover {
+            color: var(--dark);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 15px;
+            transition: border 0.3s, box-shadow 0.3s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--primary-bg-light);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .file-upload {
+            border: 2px dashed var(--border-color);
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border 0.3s, background 0.3s;
+            color: var(--gray);
+        }
+
+        .file-upload:hover {
+            border-color: var(--primary);
+            background: var(--primary-bg-light);
+        }
+
+        .file-upload i {
+            font-size: 40px;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .file-upload p {
+            font-weight: 500;
+        }
+
+        .file-input {
+            display: none;
+        }
+        
+        .modal-content .btn {
+            width: 100%;
+            padding: 12px 20px;
+        }
+
+        .logo-img {
+            width: 30px; 
+            height: 30px;
+            object-fit: contain; /* Prevents stretching */
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: var(--sidebar-collapsed-width);
+            }
+            
+            .sidebar .logo h1,
+            .sidebar .menu-text {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: var(--sidebar-collapsed-width);
+            }
+            
+            .user-name {
+                display: none;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="logo.jpeg" alt="KhetSathi Logo" class="logo-img">
+                <h1>KhetSathi</h1>
+            </div>
+            <button class="toggle-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span class="menu-text">Dashboard</span>
+            </a>
+            <a href="equipments.html" class="menu-item">
+                <i class="fas fa-tractor"></i>
+                <span class="menu-text">Equipments</span>
+            </a>
+            <a href="byproducts.html" class="menu-item active">
+                <i class="fas fa-recycle"></i>
+                <span class="menu-text">ByProducts</span>
+            </a>
+            <a href="quiz.html" class="menu-item">
+                <i class="fas fa-question-circle"></i>
+                <span class="menu-text">Quiz</span>
+            </a>
+            <a href="mylistings.html" class="menu-item">
+                <i class="fas fa-list"></i>
+                <span class="menu-text">My Listings</span>
+            </a>
+            <a href="purchases.html" class="menu-item">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="menu-text">Purchases</span>
+            </a>
+            <a href="community.html" class="menu-item">
+                <i class="fas fa-comments"></i>
+                <span class="menu-text">Community Chat</span>
+            </a>
+            <a href="greenpoints.html" class="menu-item">
+                <i class="fas fa-award"></i>
+                <span class="menu-text">GreenPoints</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">ByProducts Marketplace</h1>
+            <div class="user-profile" onclick="window.location.href='profile.html'">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <div class="user-name" id="user-name">User</div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="page-header">
+                <h2>Available ByProducts for Sale</h2>
+                <button class="btn btn-primary" id="sell-byproduct-btn">
+                    <i class="fas fa-plus-circle"></i> Sell ByProduct
+                </button>
+            </div>
+
+            <div class="byproducts-grid" id="byproducts-grid">
+                </div>
+        </div>
+    </div>
+
+    <div class="modal" id="sell-byproduct-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Sell ByProduct</h2>
+                <button class="close-btn" id="close-modal">&times;</button>
+            </div>
+            <form id="sell-byproduct-form">
+                <div class="form-group">
+                    <label for="byproduct-name">ByProduct Name</label>
+                    <input type="text" id="byproduct-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="byproduct-description">Description</label>
+                    <textarea id="byproduct-description" class="form-control" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="byproduct-price">Price (₹)</label>
+                    <input type="number" id="byproduct-price" class="form-control" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="byproduct-quantity">Quantity</label>
+                    <input type="text" id="byproduct-quantity" class="form-control" placeholder="e.g., 50 kg, 100 units" required>
+                </div>
+                <div class="form-group">
+                    <label for="byproduct-location">Location</label>
+                    <input type="text" id="byproduct-location" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>ByProduct Image</label>
+                    <div class="file-upload" id="file-upload">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload or drag and drop</p>
+                        <input type="file" id="byproduct-image" class="file-input" accept="image/*">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">List ByProduct</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) {
+            window.location.href = 'auth.html';
+        } else {
+            // Display user info
+            document.getElementById('user-name').textContent = currentUser.username;
+            document.getElementById('user-avatar').textContent = currentUser.username.charAt(0).toUpperCase();
+        }
+
+        // Sidebar toggle
+        document.querySelector('.toggle-btn').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+            document.querySelector('.main-content').classList.toggle('expanded');
+        });
+
+        // Modal functionality
+        const modal = document.getElementById('sell-byproduct-modal');
+        const sellBtn = document.getElementById('sell-byproduct-btn');
+        const closeBtn = document.getElementById('close-modal');
+
+        sellBtn.addEventListener('click', function() {
+            modal.style.display = 'flex';
+        });
+
+        closeBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // File upload
+        const fileUpload = document.getElementById('file-upload');
+        const fileInput = document.getElementById('byproduct-image');
+        const defaultFileUploadHTML = fileUpload.innerHTML; // Store default state
+
+        fileUpload.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                // Updated file selection text
+                fileUpload.innerHTML = `<p><i class="fas fa-check-circle" style="color: var(--primary);"></i> Selected: ${this.files[0].name}</p>`;
+            } else {
+                fileUpload.innerHTML = defaultFileUploadHTML; // Reset if no file
+            }
+        });
+
+        // Load byproduct listings
+        function loadByproductListings() {
+            const byproductsGrid = document.getElementById('byproducts-grid');
+            const byproductListings = JSON.parse(localStorage.getItem('byproductListings') || '[]');
+            
+            // Filter out current user's listings
+            const filteredListings = byproductListings.filter(item => item.ownerId !== currentUser.id);
+            
+            if (filteredListings.length === 0) {
+                byproductsGrid.innerHTML = '<p>No byproducts available for sale at the moment.</p>';
+                return;
+            }
+            
+            // --- UI CHANGE: Using new classes for quantity/owner ---
+            byproductsGrid.innerHTML = filteredListings.map(item => `
+                <div class="byproduct-card">
+                    <div class="byproduct-image">
+                        ${item.image ? 
+                            `<img src="${item.image}" alt="${item.name}" style="width:100%; height:100%; object-fit:cover;">` : 
+                            `<i class="fas fa-recycle"></i>`
+                        }
+                    </div>
+                    <div class="byproduct-details">
+                        <h3 class="byproduct-name">${item.name}</h3>
+                        <p class="byproduct-description">${item.description}</p>
+                        <div class="byproduct-meta">
+                            <div class="byproduct-price">₹${item.price}</div>
+                            <div class="byproduct-location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>${item.location}</span>
+                            </div>
+                        </div>
+                        <p class="byproduct-quantity">Quantity: ${item.quantity}</p>
+                        <p class="byproduct-owner">Listed by: ${item.ownerName}</p>
+                        <button class="btn btn-primary" onclick="buyByproduct('${item.id}')">Buy Now</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Buy byproduct function
+        function buyByproduct(byproductId) {
+            alert('Buying functionality would be implemented here. ByProduct ID: ' + byproductId);
+            // In a real application, this would open a purchase form or process
+        }
+
+        // Form submission for selling byproduct
+        document.getElementById('sell-byproduct-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('byproduct-name').value;
+            const description = document.getElementById('byproduct-description').value;
+            const price = document.getElementById('byproduct-price').value;
+            const quantity = document.getElementById('byproduct-quantity').value;
+            const location = document.getElementById('byproduct-location').value;
+            const imageFile = document.getElementById('byproduct-image').files[0];
+            
+            // Create byproduct object
+            const byproduct = {
+                id: Date.now().toString(),
+                name,
+                description,
+                price,
+                quantity,
+                location,
+                ownerId: currentUser.id,
+                ownerName: currentUser.username,
+                createdAt: new Date().toISOString()
+            };
+            
+            // Handle image upload (in a real app, this would upload to a server)
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    byproduct.image = e.target.result;
+                    saveByproduct(byproduct);
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                saveByproduct(byproduct);
+            }
+        });
+        
+        function saveByproduct(byproduct) {
+            // Get existing byproduct listings
+            const byproductListings = JSON.parse(localStorage.getItem('byproductListings') || '[]');
+            
+            // Add new byproduct
+            byproductListings.push(byproduct);
+            localStorage.setItem('byproductListings', JSON.stringify(byproductListings));
+            
+            // Close modal and reset form
+            document.getElementById('sell-byproduct-modal').style.display = 'none';
+            document.getElementById('sell-byproduct-form').reset();
+            // Reset file upload appearance
+            document.getElementById('file-upload').innerHTML = defaultFileUploadHTML; 
+            
+            // Reload byproduct listings
+            loadByproductListings();
+            
+            alert('ByProduct listed successfully!');
+        }
+
+        // Initial load
+        loadByproductListings();
+    </script>
+    <script src="chatbot-integration.js"></script>
+</body>
+</html>

@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KhetSathi - My Purchases</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #2e7d32;
+            --primary-light: #4caf50;
+            --primary-dark: #1b5e20;
+            --primary-bg-light: #e8f5e9; /* Light green for backgrounds */
+            --secondary: #ff9800;
+            --secondary-light: #fff3e0; /* Light orange for backgrounds */
+            --light: #f5f5f5;
+            --dark: #333;
+            --gray: #6c757d;
+            --white: #ffffff;
+            --border-color: #e0e0e0;
+            
+            /* Status colors */
+            --status-completed-bg: #e8f5e9;
+            --status-completed-text: #2e7d32;
+            --status-pending-bg: #fff3e0;
+            --status-pending-text: #f57c00;
+            --status-active-bg: #e3f2fd;
+            --status-active-text: #1976d2;
+
+
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 70px;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--white);
+            color: var(--dark);
+            transition: all 0.3s;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary-dark);
+        }
+
+        .logo i {
+            font-size: 24px;
+        }
+
+        .logo h1 {
+            font-size: 20px;
+            white-space: nowrap;
+            overflow: hidden;
+            font-weight: 600;
+        }
+
+        .sidebar.collapsed .logo h1 {
+            display: none;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        .toggle-btn:hover {
+            color: var(--dark);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: var(--gray);
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: var(--primary-bg-light);
+            color: var(--primary-dark);
+            border-left-color: var(--primary);
+        }
+        .menu-item:hover {
+            transform: translateX(2px);
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .menu-text {
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed .menu-text {
+            display: none;
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+        }
+
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        .top-bar {
+            background: var(--white);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .user-profile:hover {
+            background: var(--light);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+        .btn-primary:hover {
+            background: var(--primary-light);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        .btn-outline:hover {
+            background: var(--primary-bg-light);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- Stats Cards --- */
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 12px; /* Updated */
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Updated */
+            border: 1px solid var(--border-color); /* Added */
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700; /* Bolder */
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* --- Tabs --- */
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            color: var(--gray);
+            margin-bottom: -1px;
+        }
+        
+        .tab:hover {
+            color: var(--dark);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* --- Purchase List --- */
+        .purchases-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .purchase-card {
+            background: var(--white);
+            border-radius: 12px; /* Updated */
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Updated */
+            border: 1px solid var(--border-color); /* Added */
+            display: flex;
+            gap: 20px;
+        }
+
+        .purchase-image {
+            width: 120px;
+            height: 120px;
+            background: var(--light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            flex-shrink: 0;
+        }
+
+        .purchase-image i {
+            font-size: 40px;
+        }
+
+        .purchase-details {
+            flex: 1;
+        }
+
+        .purchase-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+            font-weight: 600; /* Bolder */
+        }
+
+        .purchase-description {
+            color: var(--gray);
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .purchase-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .purchase-price {
+            font-weight: 700; /* Bolder */
+            color: var(--primary);
+            font-size: 18px;
+        }
+
+        .purchase-status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-completed {
+            background: var(--status-completed-bg);
+            color: var(--status-completed-text);
+        }
+
+        .status-pending {
+            background: var(--status-pending-bg);
+            color: var(--status-pending-text);
+        }
+
+        .status-active {
+            background: var(--status-active-bg);
+            color: var(--status-active-text);
+        }
+
+        .purchase-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* --- Empty State --- */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px; /* Reduced padding */
+            color: var(--gray);
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .empty-state i {
+            font-size: 60px; /* Reduced size */
+            margin-bottom: 20px;
+            color: var(--border-color); /* Lighter icon */
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .empty-state .btn {
+            margin-top: 15px;
+        }
+
+        .logo-img {
+            width: 30px; 
+            height: 30px;
+            object-fit: contain; /* Prevents stretching */
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: var(--sidebar-collapsed-width);
+            }
+            
+            .sidebar .logo h1,
+            .sidebar .menu-text {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: var(--sidebar-collapsed-width);
+            }
+            
+            .user-name {
+                display: none;
+            }
+            
+            .purchase-card {
+                flex-direction: column;
+            }
+            
+            .purchase-image {
+                width: 100%;
+                height: 150px;
+            }
+            
+            .purchase-meta {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .stats-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="logo.jpeg" alt="KhetSathi Logo" class="logo-img">
+                <h1>KhetSathi</h1>
+            </div>
+            <button class="toggle-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span class="menu-text">Dashboard</span>
+            </a>
+            <a href="equipments.html" class="menu-item">
+                <i class="fas fa-tractor"></i>
+                <span class="menu-text">Equipments</span>
+            </a>
+            <a href="byproducts.html" class="menu-item">
+                <i class="fas fa-recycle"></i>
+                <span class="menu-text">ByProducts</span>
+            </a>
+            <a href="quiz.html" class="menu-item">
+                <i class="fas fa-question-circle"></i>
+                <span class="menu-text">Quiz</span>
+            </a>
+            <a href="mylistings.html" class="menu-item">
+                <i class="fas fa-list"></i>
+                <span class="menu-text">My Listings</span>
+            </a>
+            <a href="purchases.html" class="menu-item active">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="menu-text">Purchases</span>
+            </a>
+            <a href="community.html" class="menu-item">
+                <i class="fas fa-comments"></i>
+                <span class="menu-text">Community Chat</span>
+            </a>
+            <a href="greenpoints.html" class="menu-item">
+                <i class="fas fa-award"></i>
+                <span class="menu-text">GreenPoints</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">My Purchases</h1>
+            <div class="user-profile" onclick="window.location.href='profile.html'">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <div class="user-name" id="user-name">User</div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-purchases">0</div>
+                    <div class="stat-label">Total Purchases</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="active-rentals">0</div>
+                    <div class="stat-label">Active Rentals</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-spent">₹0</div>
+                    <div class="stat-label">Total Amount Spent</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="savings">₹0</div>
+                    <div class="stat-label">Estimated Savings</div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" data-tab="equipment">Equipment Rentals</div>
+                <div class="tab" data-tab="byproduct">ByProduct Purchases</div>
+            </div>
+
+            <div id="equipment-tab" class="tab-content active">
+                <div class="purchases-list" id="equipment-purchases">
+                    </div>
+            </div>
+
+            <div id="byproduct-tab" class="tab-content">
+                <div class="purchases-list" id="byproduct-purchases">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) {
+            window.location.href = 'auth.html';
+        } else {
+            document.getElementById('user-name').textContent = currentUser.username;
+            document.getElementById('user-avatar').textContent = currentUser.username.charAt(0).toUpperCase();
+        }
+
+        document.querySelector('.toggle-btn').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+            document.querySelector('.main-content').classList.toggle('expanded');
+        });
+
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                const tabId = this.getAttribute('data-tab') + '-tab';
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        function loadPurchaseData() {
+            // NOTE: In a real app, this data would come from a database.
+            // For demo purposes, we'll create dummy data if it doesn't exist.
+            let equipmentPurchases = JSON.parse(localStorage.getItem('equipmentPurchases') || '[]');
+            let byproductPurchases = JSON.parse(localStorage.getItem('byproductPurchases') || '[]');
+
+            // --- START DUMMY DATA ---
+            // Create dummy data for the current user if they have none
+            if (equipmentPurchases.filter(p => p.userId === currentUser.id).length === 0 &&
+                byproductPurchases.filter(p => p.userId === currentUser.id).length === 0) {
+                
+                equipmentPurchases.push({
+                    id: 'e_123',
+                    userId: currentUser.id,
+                    equipmentId: 'eq_901',
+                    name: 'Sonalika Tractor',
+                    description: 'Heavy-duty tractor for ploughing.',
+                    image: 'https://via.placeholder.com/120x120.png/E8F5E9/2E7D32?text=Tractor',
+                    rentalDate: new Date('2025-10-25').toISOString(),
+                    duration: 3,
+                    location: 'Pune',
+                    totalAmount: 6000,
+                    status: 'active',
+                    ownerId: 'user_002'
+                });
+                
+                equipmentPurchases.push({
+                    id: 'e_124',
+                    userId: currentUser.id,
+                    equipmentId: 'eq_902',
+                    name: 'Water Pump',
+                    description: '5HP Motor Pump for irrigation.',
+                    image: 'https://via.placeholder.com/120x120.png/E8F5E9/2E7D32?text=Pump',
+                    rentalDate: new Date('2025-10-15').toISOString(),
+                    duration: 2,
+                    location: 'Satara',
+                    totalAmount: 1000,
+                    status: 'completed',
+                    ownerId: 'user_003'
+                });
+                
+                byproductPurchases.push({
+                    id: 'b_456',
+                    userId: currentUser.id,
+                    byproductId: 'bp_801',
+                    name: 'Rice Husk',
+                    description: 'High-quality rice husk for animal feed.',
+                    image: 'https://via.placeholder.com/120x120.png/FFF3E0/F57C00?text=Husk',
+                    purchaseDate: new Date('2025-10-28').toISOString(),
+                    quantity: '200 kg',
+                    location: 'Nashik',
+                    totalAmount: 800,
+                    status: 'completed',
+                    ownerId: 'user_004'
+                });
+                
+                localStorage.setItem('equipmentPurchases', JSON.stringify(equipmentPurchases));
+                localStorage.setItem('byproductPurchases', JSON.stringify(byproductPurchases));
+            }
+            // --- END DUMMY DATA ---
+
+
+            const userEquipmentPurchases = equipmentPurchases.filter(purchase => purchase.userId === currentUser.id);
+            const userByproductPurchases = byproductPurchases.filter(purchase => purchase.userId === currentUser.id);
+
+            document.getElementById('total-purchases').textContent = userEquipmentPurchases.length + userByproductPurchases.length;
+            document.getElementById('active-rentals').textContent = userEquipmentPurchases.filter(p => p.status === 'active').length;
+            
+            const totalSpent = userEquipmentPurchases.reduce((sum, p) => sum + p.totalAmount, 0) +
+                                 userByproductPurchases.reduce((sum, p) => sum + p.totalAmount, 0);
+            document.getElementById('total-spent').textContent = '₹' + totalSpent;
+
+            // Assuming 30% savings on renting vs. buying new
+            const equipmentSavings = userEquipmentPurchases.reduce((sum, p) => sum + (p.totalAmount * 0.3), 0);
+            document.getElementById('savings').textContent = '₹' + Math.round(equipmentSavings);
+
+            loadEquipmentPurchases(userEquipmentPurchases);
+            loadByproductPurchases(userByproductPurchases);
+        }
+
+        function loadEquipmentPurchases(purchases) {
+            const container = document.getElementById('equipment-purchases');
+            
+            if (purchases.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-tractor"></i>
+                        <h3>No Equipment Rentals</h3>
+                        <p>You haven't rented any equipment yet. Start exploring available equipment!</p>
+                        <a href="equipments.html" class="btn btn-primary" style="margin-top: 15px;">Browse Equipment</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = purchases.map(purchase => `
+                <div class="purchase-card">
+                    <div class="purchase-image">
+                        ${purchase.image ? 
+                            `<img src="${purchase.image}" alt="${purchase.name}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">` : 
+                            `<i class="fas fa-tractor"></i>`
+                        }
+                    </div>
+                    <div class="purchase-details">
+                        <h3 class="purchase-title">${purchase.name}</h3>
+                        <p class="purchase-description">${purchase.description}</p>
+                        <div class="purchase-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>Rented on: ${new Date(purchase.rentalDate).toLocaleDateString()}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-clock"></i>
+                                <span>Duration: ${purchase.duration} days</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>${purchase.location}</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div class="purchase-price">₹${purchase.totalAmount}</div>
+                            <div class="purchase-status status-${purchase.status}">${purchase.status.charAt(0).toUpperCase() + purchase.status.slice(1)}</div>
+                        </div>
+                        <div class="purchase-actions">
+                            <button class="btn btn-outline" onclick="contactOwner('${purchase.ownerId}')">Contact Owner</button>
+                            ${purchase.status === 'active' ? 
+                                `<button class="btn btn-primary" onclick="extendRental('${purchase.id}')">Extend Rental</button>` : 
+                                `<button class="btn btn-primary" onclick="rentAgain('${purchase.equipmentId}')">Rent Again</button>`
+                            }
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadByproductPurchases(purchases) {
+            const container = document.getElementById('byproduct-purchases');
+            
+            if (purchases.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-recycle"></i>
+                        <h3>No ByProduct Purchases</h3>
+                        <p>You haven't purchased any byproducts yet. Check out the marketplace!</p>
+                        <a href="byproducts.html" class="btn btn-primary" style="margin-top: 15px;">Browse ByProducts</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = purchases.map(purchase => `
+                <div class="purchase-card">
+                    <div class="purchase-image">
+                        ${purchase.image ? 
+                            `<img src="${purchase.image}" alt="${purchase.name}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">` : 
+                            `<i class="fas fa-recycle"></i>`
+                        }
+                    </div>
+                    <div class="purchase-details">
+                        <h3 class="purchase-title">${purchase.name}</h3>
+                        <p class="purchase-description">${purchase.description}</p>
+                        <div class="purchase-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>Purchased on: ${new Date(purchase.purchaseDate).toLocaleDateString()}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-weight"></i>
+                                <span>Quantity: ${purchase.quantity}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>${purchase.location}</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div class="purchase-price">₹${purchase.totalAmount}</div>
+                            <div class-></div>
+                        </div>
+                        <div class="purchase-actions">
+                            <button class="btn btn-outline" onclick="contactSeller('${purchase.ownerId}')">Contact Seller</button>
+                            <button class="btn btn-primary" onclick="buyAgain('${purchase.byproductId}')">Buy Again</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- Action Functions ---
+
+        function contactOwner(ownerId) {
+            alert('Contact functionality would be implemented here. Owner ID: ' + ownerId);
+        }
+
+        function extendRental(rentalId) {
+            alert('Rental extension functionality would be implemented here. Rental ID: ' + rentalId);
+        }
+
+        function rentAgain(equipmentId) {
+            alert('Redirecting to equipment page to rent again. Equipment ID: ' + equipmentId);
+            window.location.href = 'equipments.html'; // Example redirect
+        }
+
+        function contactSeller(sellerId) {
+            alert('Contact functionality would be implemented here. Seller ID: ' + sellerId);
+        }
+
+        function buyAgain(byproductId) {
+            alert('Redirecting to byproducts page to buy again. ByProduct ID: ' + byproductId);
+            window.location.href = 'byproducts.html'; // Example redirect
+        }
+        
+        // Initial load
+        loadPurchaseData();
+    </script>
+    <script src="chatbot-integration.js"></script>
+</body>
+</html>

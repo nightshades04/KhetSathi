@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KhetSathi - Community Chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #2e7d32;
+            --primary-light: #4caf50;
+            --primary-dark: #1b5e20;
+            --primary-bg-light: #e8f5e9; /* Light green for backgrounds */
+            --secondary: #ff9800;
+            --secondary-light: #fff3e0; /* Light orange for backgrounds */
+            --light: #f5f5f5;
+            --dark: #333;
+            --gray: #6c757d;
+            --white: #ffffff;
+            --border-color: #e0e0e0;
+            
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 70px;
+            --top-bar-height: 70px; /* Set fixed height */
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+            /* Prevent body scrolling for chat layout */
+            overflow: hidden; 
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--white);
+            color: var(--dark);
+            transition: all 0.3s;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary-dark);
+        }
+
+        .logo i {
+            font-size: 24px;
+        }
+
+        .logo h1 {
+            font-size: 20px;
+            white-space: nowrap;
+            overflow: hidden;
+            font-weight: 600;
+        }
+
+        .sidebar.collapsed .logo h1 {
+            display: none;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        .toggle-btn:hover {
+            color: var(--dark);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: var(--gray);
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: var(--primary-bg-light);
+            color: var(--primary-dark);
+            border-left-color: var(--primary);
+        }
+        .menu-item:hover {
+            transform: translateX(2px);
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .menu-text {
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed .menu-text {
+            display: none;
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+        }
+
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        .top-bar {
+            background: var(--white);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+            height: var(--top-bar-height); /* Fixed height */
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .user-profile:hover {
+            background: var(--light);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        /* --- Page Styles --- */
+        .content-area {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            /* Full height minus top bar */
+            height: calc(100vh - var(--top-bar-height));
+        }
+
+        .community-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .community-title {
+            font-size: 32px;
+            color: var(--primary-dark);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .community-subtitle {
+            color: var(--gray);
+            font-size: 18px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .chat-container {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            min-height: 0; /* Allows container to shrink */
+        }
+
+        .channels-sidebar {
+            width: 300px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .channels-title {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: var(--primary-dark);
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        .channels-list {
+            list-style: none;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .channel-item {
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .channel-item:hover {
+            background: var(--light);
+        }
+        
+        .channel-item.active {
+            background: var(--primary-bg-light);
+            color: var(--primary-dark);
+        }
+
+        .channel-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--primary-bg-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 14px;
+        }
+        .channel-item.active .channel-icon {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .channel-info {
+            flex: 1;
+        }
+
+        .channel-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .channel-desc {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        .channel-item.active .channel-desc {
+            color: var(--primary-dark);
+        }
+
+        .channel-members {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .chat-area {
+            flex: 1;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            min-width: 0; /* Allows container to shrink */
+        }
+
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .current-channel-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-bg-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        .current-channel-info h3 {
+            margin-bottom: 5px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .current-channel-info p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            display: flex;
+            gap: 10px;
+            max-width: 80%;
+        }
+
+        .message.own {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary); /* Other users */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .message.own .message-avatar {
+             background: var(--primary); /* Current user */
+        }
+
+        .message-content {
+            background: var(--light);
+            padding: 12px 15px;
+            border-radius: 18px;
+            position: relative;
+        }
+
+        .message.own .message-content {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .message-sender {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .message.own .message-time {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .message-text {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .message-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .message-input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--primary-bg-light);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        /* Rounded send button */
+        .message-form .btn {
+            border-radius: 24px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover {
+            background: var(--primary-light);
+        }
+
+        .empty-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            text-align: center;
+        }
+
+        .empty-chat i {
+            font-size: 80px;
+            margin-bottom: 20px;
+            color: var(--border-color);
+        }
+
+        .empty-chat h3 {
+            margin-bottom: 10px;
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .logo-img {
+            width: 30px; 
+            height: 30px;
+            object-fit: contain; /* Prevents stretching */
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            body {
+                overflow: auto; /* Allow scrolling on mobile */
+            }
+
+            .sidebar {
+                width: var(--sidebar-collapsed-width);
+            }
+            
+            .sidebar .logo h1,
+            .sidebar .menu-text {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: var(--sidebar-collapsed-width);
+            }
+            
+            .user-name {
+                display: none;
+            }
+
+            .content-area {
+                height: auto; /* Let content define height */
+            }
+            
+            .chat-container {
+                flex-direction: column;
+            }
+            
+            .channels-sidebar {
+                width: 100%;
+                max-height: 200px; /* Make channel list scrollable */
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="logo.jpeg" alt="KhetSathi Logo" class="logo-img">
+                <h1>KhetSathi</h1>
+            </div>
+            <button class="toggle-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span class="menu-text">Dashboard</span>
+            </a>
+            <a href="equipments.html" class="menu-item">
+                <i class="fas fa-tractor"></i>
+                <span class="menu-text">Equipments</span>
+            </a>
+            <a href="byproducts.html" class="menu-item">
+                <i class="fas fa-recycle"></i>
+                <span class="menu-text">ByProducts</span>
+            </a>
+            <a href="quiz.html" class="menu-item">
+                <i class="fas fa-question-circle"></i>
+                <span class="menu-text">Quiz</span>
+            </a>
+            <a href="mylistings.html" class="menu-item">
+                <i class="fas fa-list"></i>
+                <span class="menu-text">My Listings</span>
+            </a>
+            <a href="purchases.html" class="menu-item">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="menu-text">Purchases</span>
+            </a>
+            <a href="community.html" class="menu-item active">
+                <i class="fas fa-comments"></i>
+                <span class="menu-text">Community Chat</span>
+            </a>
+            <a href="greenpoints.html" class="menu-item">
+                <i class="fas fa-award"></i>
+                <span class="menu-text">GreenPoints</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Community Chat</h1>
+            <div class="user-profile" onclick="window.location.href='profile.html'">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <div class="user-name" id="user-name">User</div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="community-header">
+                <h1 class="community-title">Farmer's Community</h1>
+                <p class="community-subtitle">Connect with fellow farmers, share experiences, and get advice from the community</p>
+            </div>
+
+            <div class="chat-container">
+                <div class="channels-sidebar">
+                    <h2 class="channels-title">Discussion Channels</h2>
+                    <ul class="channels-list" id="channels-list">
+                        </ul>
+                </div>
+
+                <div class="chat-area">
+                    <div class="chat-header" id="chat-header">
+                        </div>
+                    <div class="messages-container" id="messages-container">
+                        </div>
+                    <div class="chat-input">
+                        <form class="message-form" id="message-form">
+                            <input type="text" class="message-input" id="message-input" placeholder="Type your message here..." required>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Send
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) {
+            window.location.href = 'auth.html';
+        } else {
+            // Display user info
+            document.getElementById('user-name').textContent = currentUser.username;
+            document.getElementById('user-avatar').textContent = currentUser.username.charAt(0).toUpperCase();
+        }
+
+        // Sidebar toggle
+        document.querySelector('.toggle-btn').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+            document.querySelector('.main-content').classList.toggle('expanded');
+        });
+
+        // Chat data - Only channel definitions, no sample messages
+        const channels = [
+            {
+                id: 'general',
+                name: 'General Discussion',
+                description: 'Talk about anything related to farming',
+                icon: 'fas fa-comments',
+                members: 1 // Start with 1 member (current user)
+            },
+            {
+                id: 'equipment',
+                name: 'Equipment Sharing',
+                description: 'Discuss equipment rentals and sharing',
+                icon: 'fas fa-tractor',
+                members: 1
+            },
+            {
+                id: 'byproducts',
+                name: 'ByProducts Market',
+                description: 'Buy and sell agricultural byproducts',
+                icon: 'fas fa-recycle',
+                members: 1
+            },
+            {
+                id: 'sustainable',
+                name: 'Sustainable Farming',
+                description: 'Share sustainable farming practices',
+                icon: 'fas fa-leaf',
+                members: 1
+            },
+            {
+                id: 'water',
+                name: 'Water Conservation',
+                description: 'Discuss water-saving techniques',
+                icon: 'fas fa-tint',
+                members: 1
+            },
+            {
+                id: 'help',
+                name: 'Help & Support',
+                description: 'Get help with farming challenges',
+                icon: 'fas fa-question-circle',
+                members: 1
+            }
+        ];
+
+        let currentChannel = null;
+        let messages = JSON.parse(localStorage.getItem('communityMessages') || '{}');
+
+        // Initialize empty messages for each channel if not exists
+        channels.forEach(channel => {
+            if (!messages[channel.id]) {
+                messages[channel.id] = [];
+            }
+        });
+        localStorage.setItem('communityMessages', JSON.stringify(messages));
+
+        // Load channels
+        function loadChannels() {
+            const channelsList = document.getElementById('channels-list');
+            channelsList.innerHTML = channels.map(channel => `
+                <li class="channel-item ${channel.id === (currentChannel ? currentChannel.id : 'general') ? 'active' : ''}" 
+                    data-channel="${channel.id}">
+                    <div class="channel-icon">
+                        <i class="${channel.icon}"></i>
+                    </div>
+                    <div class="channel-info">
+                        <div class="channel-name">${channel.name}</div>
+                        <div class="channel-desc">${channel.description}</div>
+                    </div>
+                    </li>
+            `).join('');
+
+            // Add event listeners to channels
+            document.querySelectorAll('.channel-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const channelId = this.getAttribute('data-channel');
+                    switchChannel(channelId);
+                });
+            });
+        }
+
+        // Switch channel
+        function switchChannel(channelId) {
+            const channel = channels.find(c => c.id === channelId);
+            if (!channel) return;
+
+            currentChannel = channel;
+
+            // Update active channel in UI
+            document.querySelectorAll('.channel-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-channel') === channelId) {
+                    item.classList.add('active');
+                }
+            });
+
+            // Update chat header
+            document.getElementById('chat-header').innerHTML = `
+                <div class="current-channel-icon">
+                    <i class="${channel.icon}"></i>
+                </div>
+                <div class="current-channel-info">
+                    <h3>${channel.name}</h3>
+                    <p>${channel.description}</p>
+                </div>
+            `;
+
+            // Load messages for this channel
+            loadMessages(channelId);
+        }
+
+        // Load messages for a channel
+        function loadMessages(channelId) {
+            const messagesContainer = document.getElementById('messages-container');
+            const channelMessages = messages[channelId] || [];
+
+            if (channelMessages.length === 0) {
+                messagesContainer.innerHTML = `
+                    <div class="empty-chat">
+                        <i class="fas fa-comments"></i>
+                        <h3>No messages yet</h3>
+                        <p>Be the first to start a conversation in this channel!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            messagesContainer.innerHTML = channelMessages.map(msg => {
+                const isOwn = msg.sender === currentUser.username;
+                return `
+                    <div class="message ${isOwn ? 'own' : ''}">
+                        <div class="message-avatar">${msg.senderInitial}</div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <div class="message-sender">${msg.sender}</div>
+                                <div class="message-time">${formatTime(msg.time)}</div>
+                            </div>
+                            <div class="message-text">${msg.text}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Format time for display
+        function formatTime(timeString) {
+            const time = new Date(timeString);
+            const now = new Date();
+            const diffMs = now - time;
+            const diffMins = Math.floor(diffMs / (1000 * 60));
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} min ago`;
+            if (diffHours < 24) return `${diffHours} hr ago`;
+            if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+            
+            return time.toLocaleDateString();
+        }
+
+        // Send message
+        document.getElementById('message-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const messageInput = document.getElementById('message-input');
+            const messageText = messageInput.value.trim();
+            
+            if (!messageText || !currentChannel) return;
+            
+            // Create new message
+            const newMessage = {
+                id: 'm' + Date.now(),
+                sender: currentUser.username,
+                senderInitial: currentUser.username.charAt(0).toUpperCase(),
+                text: messageText,
+                time: new Date().toISOString()
+            };
+            
+            // Add to messages
+            if (!messages[currentChannel.id]) {
+                messages[currentChannel.id] = [];
+            }
+            messages[currentChannel.id].push(newMessage);
+            
+            // Save to localStorage
+            localStorage.setItem('communityMessages', JSON.stringify(messages));
+            
+            // Clear input
+            messageInput.value = '';
+            
+            // Reload messages
+            loadMessages(currentChannel.id);
+        });
+
+        // Initialize
+        loadChannels();
+        switchChannel('general');
+    </script>
+    <script src="chatbot-integration.js"></script>
+</body>
+</html>

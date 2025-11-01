@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KhetSathi - Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* --- Consistent Color Palette --- */
+        :root {
+            --primary: #2e7d32;
+            --primary-light: #4caf50;
+            --primary-dark: #1b5e20;
+            --primary-bg-light: #e8f5e9; 
+            --secondary: #ff9800;
+            --secondary-light: #fff3e0;
+            --light: #f5f5ff; /* Use the new light background */
+            --dark: #333;
+            --gray: #6c757d;
+            --white: #ffffff;
+            --border-color: #e0e0e0;
+            --error: #f44336;
+            --danger: #f44336;
+        }
+
+        body {
+            background-color: var(--light); /* Updated background */
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Softer shadow */
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            color: var(--primary);
+            font-size: 28px;
+        }
+
+        .logo h1 {
+            color: var(--primary-dark);
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        /* --- Consistent Buttons --- */
+        .btn {
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        .btn-outline:hover {
+            background: var(--primary-bg-light);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+        .btn-primary:hover {
+            background: var(--primary-light);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: var(--white);
+        }
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- Profile Cards Layout --- */
+        .profile-container {
+            display: flex;
+            gap: 30px;
+            padding: 40px 0;
+        }
+
+        .profile-sidebar, .profile-content {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+        }
+
+        .profile-sidebar {
+            width: 300px;
+            flex-shrink: 0;
+        }
+
+        .profile-content {
+            flex: 1;
+        }
+        
+        /* --- Left Card: Profile Sidebar --- */
+        .profile-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--secondary); /* Match top bar avatar */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            color: var(--white);
+            font-size: 36px;
+            font-weight: 600; /* Bolder */
+        }
+
+        .profile-name {
+            font-size: 20px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .profile-email {
+            color: var(--gray);
+            margin-bottom: 15px;
+        }
+
+        .profile-location {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            color: var(--gray);
+            margin-bottom: 20px;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700; /* Bolder */
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .profile-menu {
+            list-style: none;
+        }
+
+        .profile-menu .menu-item {
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            color: var(--gray);
+        }
+        
+        .profile-menu .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .profile-menu .menu-item:hover, 
+        .profile-menu .menu-item.active {
+            background: var(--primary-bg-light);
+            color: var(--primary-dark);
+        }
+        
+        /* --- Right Card: Profile Content --- */
+        .profile-section {
+            display: none; /* Hidden by default */
+        }
+        .profile-section.active {
+            display: block; /* Shown by JS */
+        }
+        
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 25px;
+            color: var(--primary-dark);
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 15px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s;
+        }
+        
+        .form-control:read-only {
+            background: var(--light);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--primary-bg-light);
+        }
+
+        .error-message {
+            color: var(--error);
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .success-message {
+            color: var(--primary);
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .theme-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .theme-option {
+            flex: 1;
+            border: 2px solid var(--border-color);
+            border-radius: 8px; /* Softer */
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .theme-option:hover {
+            border-color: var(--primary);
+        }
+
+        .theme-option.active {
+            border-color: var(--primary);
+            background: var(--primary-bg-light);
+            color: var(--primary-dark);
+        }
+
+        .theme-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        
+        .theme-option.active .theme-icon {
+            color: var(--primary-dark);
+        }
+
+        /* --- Footer --- */
+        footer {
+            background: var(--dark);
+            color: var(--white);
+            padding: 30px 0;
+            margin-top: 40px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .footer-column h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column ul li {
+            margin-bottom: 8px;
+        }
+
+        .footer-column a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-column a:hover {
+            color: var(--secondary);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .logo-img {
+            width: 30px; 
+            height: 30px;
+            object-fit: contain; /* Prevents stretching */
+        }
+
+        @media (max-width: 768px) {
+            .profile-container {
+                flex-direction: column;
+            }
+            
+            .profile-sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <img src="logo.jpeg" alt="KhetSathi Logo" class="logo-img">
+                    <h1>KhetSathi</h1>
+                </div>
+                <a href="dashboard.html" class="btn btn-outline">Back to Dashboard</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="profile-container">
+            <div class="profile-sidebar">
+                <div class="profile-info">
+                    <div class="profile-avatar" id="profile-avatar">U</div>
+                    <h2 class="profile-name" id="profile-name">User Name</h2>
+                    <p class="profile-email" id="profile-email">user@example.com</p>
+                    <div class="profile-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="profile-location">Location</span>
+                    </div>
+                </div>
+                <div class="profile-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="listings-count">0</div>
+                        <div class="stat-label">Listings</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="points-count">0</div>
+                        <div class="stat-label">GreenPoints</div>
+                    </div>
+                </div>
+                <ul class="profile-menu">
+                    <li class="menu-item active" data-section="username">
+                        <i class="fas fa-user-edit"></i> Change Username
+                    </li>
+                    <li class="menu-item" data-section="mobile">
+                        <i class="fas fa-mobile-alt"></i> Change Mobile
+                    </li>
+                    <li class="menu-item" data-section="password">
+                        <i class="fas fa-lock"></i> Change Password
+                    </li>
+                    <li class="menu-item" data-section="theme">
+                        <i class="fas fa-palette"></i> Theme Preference
+                    </li>
+                    <li class="menu-item" data-section="logout" style="color: var(--error);">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </li>
+                </ul>
+            </div>
+            <div class="profile-content">
+                <div id="username-section" class="profile-section active">
+                    <h2 class="section-title">Change Username</h2>
+                    <form id="username-form">
+                        <div class="form-group">
+                            <label for="current-username">Current Username</label>
+                            <input type="text" id="current-username" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-username">New Username</label>
+                            <input type="text" id="new-username" class="form-control" required>
+                            <div class="error-message" id="username-error"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Username</button>
+                        <div class="success-message" id="username-success"></div>
+                    </form>
+                </div>
+
+                <div id="mobile-section" class="profile-section" style="display: none;">
+                    <h2 class="section-title">Change Mobile Number</h2>
+                    <form id="mobile-form">
+                        <div class="form-group">
+                            <label for="current-mobile">Current Mobile Number</label>
+                            <input type="text" id="current-mobile" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-mobile">New Mobile Number</label>
+                            <input type="tel" id="new-mobile" class="form-control" required>
+                            <div class="error-message" id="mobile-error"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Mobile Number</button>
+                        <div class="success-message" id="mobile-success"></div>
+                    </form>
+                </div>
+
+                <div id="password-section" class="profile-section" style="display: none;">
+                    <h2 class="section-title">Change Password</h2>
+                    <form id="password-form">
+                        <div class="form-group">
+                            <label for="current-password">Current Password</label>
+                            <input type="password" id="current-password" class="form-control" required>
+                            <div class="error-message" id="current-password-error"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-password">New Password</label>
+                            <input type="password" id="new-password" class="form-control" required>
+                            <div class="error-message" id="new-password-error"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm-password">Confirm New Password</label>
+                            <input type="password" id="confirm-password" class="form-control" required>
+                            <div class="error-message" id="confirm-password-error"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Password</button>
+                        <div class="success-message" id="password-success"></div>
+                    </form>
+                </div>
+
+                <div id="theme-section" class="profile-section" style="display: none;">
+                    <h2 class="section-title">Theme Preference</h2>
+                    <p>Choose your preferred theme for the application:</p>
+                    <div class="theme-options">
+                        <div class="theme-option active" data-theme="light">
+                            <div class="theme-icon">
+                                <i class="fas fa-sun"></i>
+                            </div>
+                            <div class="theme-name">Light Mode</div>
+                        </div>
+                        <div class="theme-option" data-theme="dark">
+                            <div class="theme-icon">
+                                <i class="fas fa-moon"></i>
+                            </div>
+                            <div class="theme-name">Dark Mode</div>
+                        </div>
+                    </div>
+                    <div class="success-message" id="theme-success"></div>
+                </div>
+
+                <div id="logout-section" class="profile-section" style="display: none;">
+                    <h2 class="section-title">Logout</h2>
+                    <p>Are you sure you want to logout from your account?</p>
+                    <button id="logout-btn" class="btn btn-danger">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>KhetSathi</h3>
+                    <p>Transforming farming challenges into sustainable opportunities.</p>
+                </div>
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="dashboard.html">Dashboard</a></li>
+                        <li><a href="#">Features</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Contact Us</h3>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Farm Road, Agri City</li>
+                        <li><i class="fas fa-envelope"></i> info@khetsathi.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 KhetSathi. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Check if user is logged in
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) {
+            window.location.href = 'auth.html';
+        } else {
+            // Display user info
+            document.getElementById('profile-avatar').textContent = currentUser.username.charAt(0).toUpperCase();
+            document.getElementById('profile-name').textContent = currentUser.username;
+            document.getElementById('profile-email').textContent = currentUser.email;
+            document.getElementById('profile-location').textContent = currentUser.location;
+            document.getElementById('current-username').value = currentUser.username;
+            
+            // Set mobile number if exists
+            document.getElementById('current-mobile').value = currentUser.mobile || 'Not set';
+            
+            // Calculate stats
+            const equipmentListings = JSON.parse(localStorage.getItem('equipmentListings') || '[]');
+            const byproductListings = JSON.parse(localStorage.getItem('byproductListings') || '[]');
+            const listings = equipmentListings.concat(byproductListings).filter(item => item.ownerId === currentUser.id);
+            
+            document.getElementById('listings-count').textContent = listings.length;
+            
+            // Calculate total GreenPoints
+            const quizStats = JSON.parse(localStorage.getItem('quizStats') || '{}');
+            const userQuizStats = quizStats[currentUser.id] || { pointsEarned: 0 };
+            const sellingPoints = byproductListings.filter(item => item.ownerId === currentUser.id).length * 15; // 15 points per sale
+            const rentingPoints = equipmentListings.filter(item => item.ownerId === currentUser.id).length * 10; // 10 points per rental
+            const totalPoints = userQuizStats.pointsEarned + sellingPoints + rentingPoints;
+            
+            document.getElementById('points-count').textContent = totalPoints;
+            
+            // Save total points to user object (for consistency)
+            currentUser.greenPoints = totalPoints;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        }
+
+        // Menu navigation
+        document.querySelectorAll('.profile-menu .menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Update active menu item
+                document.querySelectorAll('.profile-menu .menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show corresponding section
+                const sectionId = this.getAttribute('data-section') + '-section';
+                document.querySelectorAll('.profile-section').forEach(section => {
+                    section.style.display = 'none'; // Hide all
+                    section.classList.remove('active');
+                });
+                document.getElementById(sectionId).style.display = 'block'; // Show selected
+                document.getElementById(sectionId).classList.add('active');
+            });
+        });
+
+        // Password validation
+        function validatePassword(password) {
+            const hasLowerCase = /[a-z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            const hasSymbol = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+            const isLongEnough = password.length >= 5;
+            
+            return hasLowerCase && hasNumber && hasSymbol && isLongEnough;
+        }
+
+        // Username form submission
+        document.getElementById('username-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newUsername = document.getElementById('new-username').value;
+            const errorEl = document.getElementById('username-error');
+            const successEl = document.getElementById('username-success');
+            
+            // Reset messages
+            errorEl.style.display = 'none';
+            successEl.style.display = 'none';
+            
+            if (!newUsername) {
+                errorEl.textContent = 'New username is required';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            // Get users from localStorage
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            
+            // Check if username already exists
+            if (users.find(u => u.username === newUsername && u.id !== currentUser.id)) {
+                errorEl.textContent = 'Username already exists';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            // Update current user
+            currentUser.username = newUsername;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            // Update in users array
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            if (userIndex !== -1) {
+                users[userIndex].username = newUsername;
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+            
+            // Update UI
+            document.getElementById('profile-name').textContent = newUsername;
+            document.getElementById('profile-avatar').textContent = newUsername.charAt(0).toUpperCase();
+            document.getElementById('current-username').value = newUsername;
+            document.getElementById('new-username').value = '';
+            
+            // Show success message
+            successEl.textContent = 'Username updated successfully!';
+            successEl.style.display = 'block';
+        });
+
+        // Mobile form submission
+        document.getElementById('mobile-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newMobile = document.getElementById('new-mobile').value;
+            const errorEl = document.getElementById('mobile-error');
+            const successEl = document.getElementById('mobile-success');
+            
+            // Reset messages
+            errorEl.style.display = 'none';
+            successEl.style.display = 'none';
+            
+            if (!newMobile) {
+                errorEl.textContent = 'New mobile number is required';
+                errorEl.style.display = 'block';
+                return;
+            }
+            // Basic mobile validation (e.g., 10 digits)
+            if (!/^\d{10}$/.test(newMobile)) {
+                 errorEl.textContent = 'Please enter a valid 10-digit mobile number';
+                 errorEl.style.display = 'block';
+                 return;
+            }
+            
+            // Update current user
+            currentUser.mobile = newMobile;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            // Update in users array
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            if (userIndex !== -1) {
+                users[userIndex].mobile = newMobile;
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+            
+            // Update UI
+            document.getElementById('current-mobile').value = newMobile;
+            document.getElementById('new-mobile').value = '';
+            
+            // Show success message
+            successEl.textContent = 'Mobile number updated successfully!';
+            successEl.style.display = 'block';
+        });
+
+        // Password form submission
+        document.getElementById('password-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            // Reset messages
+            document.querySelectorAll('#password-form .error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+            const successEl = document.getElementById('password-success');
+            successEl.style.display = 'none';
+            
+            let isValid = true;
+            
+            if (currentPassword !== currentUser.password) {
+                document.getElementById('current-password-error').textContent = 'Current password is incorrect';
+                document.getElementById('current-password-error').style.display = 'block';
+                isValid = false;
+            }
+            
+            if (!validatePassword(newPassword)) {
+                document.getElementById('new-password-error').textContent = 'Password must be 5+ chars and include a letter, number, and symbol.';
+                document.getElementById('new-password-error').style.display = 'block';
+                isValid = false;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                document.getElementById('confirm-password-error').textContent = 'Passwords do not match';
+                document.getElementById('confirm-password-error').style.display = 'block';
+                isValid = false;
+            }
+            
+            if (isValid) {
+                // Update current user
+                currentUser.password = newPassword;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Update in users array
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                const userIndex = users.findIndex(u => u.id === currentUser.id);
+                if (userIndex !== -1) {
+                    users[userIndex].password = newPassword;
+                    localStorage.setItem('users', JSON.stringify(users));
+                }
+                
+                // Clear form
+                document.getElementById('current-password').value = '';
+                document.getElementById('new-password').value = '';
+                document.getElementById('confirm-password').value = '';
+                
+                // Show success message
+                successEl.textContent = 'Password updated successfully!';
+                successEl.style.display = 'block';
+            }
+        });
+
+        // Theme selection
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+                this.classList.add('active');
+                
+                const theme = this.getAttribute('data-theme');
+                
+                // Save theme preference
+                currentUser.theme = theme;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Update in users array
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                const userIndex = users.findIndex(u => u.id === currentUser.id);
+                if (userIndex !== -1) {
+                    users[userIndex].theme = theme;
+                    localStorage.setItem('users', JSON.stringify(users));
+                }
+                
+                // Apply theme (for demo, we'll just show a message)
+                const successEl = document.getElementById('theme-success');
+                successEl.textContent = `Theme changed to ${theme} mode. This is a demo; full theme switching requires a page reload.`;
+                successEl.style.display = 'block';
+                
+                // In a real app, you would add/remove a class to the <body>
+                // document.body.classList.toggle('dark-mode', theme === 'dark');
+            });
+        });
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('currentUser');
+                window.location.href = 'auth.html';
+            }
+        });
+    </script>
+</body>
+</html>

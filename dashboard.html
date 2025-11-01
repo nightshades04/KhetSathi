@@ -597,6 +597,24 @@
             document.querySelector('.sidebar').classList.toggle('collapsed');
             document.querySelector('.main-content').classList.toggle('expanded');
         });
+        // In dashboard.html, update the stats calculation
+        function loadDashboardStats() {
+            const equipmentRentals = JSON.parse(localStorage.getItem('equipmentRentals') || '[]');
+            const byproductPurchases = JSON.parse(localStorage.getItem('byproductPurchases') || '[]');
+            
+            const userEquipmentRentals = equipmentRentals.filter(rental => rental.userId === currentUser.id);
+            const userByproductPurchases = byproductPurchases.filter(purchase => purchase.userId === currentUser.id);
+            
+            // Update purchase counts in dashboard cards if they exist
+            const purchaseCountElements = document.querySelectorAll('.purchase-count');
+            purchaseCountElements.forEach(element => {
+                if (element.id === 'equipment-rentals-count') {
+                    element.textContent = userEquipmentRentals.length;
+                } else if (element.id === 'byproduct-purchases-count') {
+                    element.textContent = userByproductPurchases.length;
+                }
+            });
+        }
     </script>
     <script src="chatbot-integration.js"></script>
 </body>

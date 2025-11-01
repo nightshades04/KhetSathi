@@ -447,6 +447,11 @@
             width: 100%;
             padding: 12px 20px; /* Larger button in modal */
         }
+        .logo-img {
+                width: 30px; 
+                height: 30px;
+                object-fit: contain; /* Prevents stretching */
+            }
 
         /* --- Responsive --- */
         @media (max-width: 768px) {
@@ -471,12 +476,6 @@
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 15px;
-            }
-
-            .logo-img {
-                width: 30px; 
-                height: 30px;
-                object-fit: contain; /* Prevents stretching */
             }
         }
     </style>

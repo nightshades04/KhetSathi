@@ -918,45 +918,52 @@
         ];
 
         // Calculate user points and stats
-        function calculateUserStats() {
-            const userStats = {
-                quiz: { points: 0, quizzesTaken: 0, totalScore: 0, averageScore: 0 },
-                selling: { points: 0, byproductsSold: 0, totalSales: 0 },
-                renting: { points: 0, equipmentRented: 0, totalRentals: 0 },
-                totalPoints: 0
-            };
+        // Calculate user points and stats - UPDATED VERSION
+function calculateUserStats() {
+    const userStats = {
+        quiz: { points: 0, quizzesTaken: 0, totalScore: 0, averageScore: 0 },
+        selling: { points: 0, byproductsSold: 0, totalSales: 0 },
+        renting: { points: 0, equipmentRented: 0, totalRentals: 0 },
+        totalPoints: 0
+    };
 
-            // Calculate quiz points
-            const quizStats = JSON.parse(localStorage.getItem('quizStats') || '{}');
-            if (quizStats[currentUser.id]) {
-                const userQuizStats = quizStats[currentUser.id];
-                userStats.quiz.quizzesTaken = userQuizStats.quizzesTaken || 0;
-                userStats.quiz.totalScore = userQuizStats.totalScore || 0;
-                userStats.quiz.averageScore = userStats.quiz.quizzesTaken > 0 ? 
-                    Math.round(userStats.quiz.totalScore / userStats.quiz.quizzesTaken) : 0;
-                userStats.quiz.points = userQuizStats.pointsEarned || 0;
-            }
+    // Calculate quiz points
+    const quizStats = JSON.parse(localStorage.getItem('quizStats') || '{}');
+    if (quizStats[currentUser.id]) {
+        const userQuizStats = quizStats[currentUser.id];
+        userStats.quiz.quizzesTaken = userQuizStats.quizzesTaken || 0;
+        userStats.quiz.totalScore = userQuizStats.totalScore || 0;
+        userStats.quiz.averageScore = userStats.quiz.quizzesTaken > 0 ? 
+            Math.round(userStats.quiz.totalScore / userStats.quiz.quizzesTaken) : 0;
+        userStats.quiz.points = userQuizStats.pointsEarned || 0;
+    }
 
-            // Calculate selling points
-            const byproductListings = JSON.parse(localStorage.getItem('byproductListings') || '[]');
-            const userByproducts = byproductListings.filter(item => item.ownerId === currentUser.id);
-            userStats.selling.byproductsSold = userByproducts.length;
-            userStats.selling.totalSales = userByproducts.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
-            userStats.selling.points = userStats.selling.byproductsSold * pointsConfig.selling.pointsPerSale;
+    // Calculate selling points from actual sales (as seller)
+    const byproductPurchases = JSON.parse(localStorage.getItem('byproductPurchases') || '[]');
+    const userSales = byproductPurchases.filter(purchase => purchase.ownerId === currentUser.id);
+    userStats.selling.byproductsSold = userSales.length;
+    userStats.selling.totalSales = userSales.reduce((sum, item) => sum + parseFloat(item.totalAmount || 0), 0);
+    userStats.selling.points = userStats.selling.byproductsSold * pointsConfig.selling.pointsPerSale;
 
-            // Calculate renting points
-            const equipmentListings = JSON.parse(localStorage.getItem('equipmentListings') || '[]');
-            const userEquipment = equipmentListings.filter(item => item.ownerId === currentUser.id);
-            userStats.renting.equipmentRented = userEquipment.length;
-            userStats.renting.totalRentals = userEquipment.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
-            userStats.renting.points = userStats.renting.equipmentRented * pointsConfig.renting.pointsPerRental;
+    // Calculate renting points from actual rentals (as lender)
+    const equipmentRentals = JSON.parse(localStorage.getItem('equipmentRentals') || '[]');
+    const userRentals = equipmentRentals.filter(rental => rental.ownerId === currentUser.id);
+    userStats.renting.equipmentRented = userRentals.length;
+    userStats.renting.totalRentals = userRentals.reduce((sum, item) => sum + parseFloat(item.totalAmount || 0), 0);
+    userStats.renting.points = userStats.renting.equipmentRented * pointsConfig.renting.pointsPerRental;
 
-            // Calculate total points
-            userStats.totalPoints = userStats.quiz.points + userStats.selling.points + userStats.renting.points;
+    // Add points from buying/renting (as a consumer)
+    const userPurchases = byproductPurchases.filter(purchase => purchase.userId === currentUser.id);
+    const userEquipmentRentals = equipmentRentals.filter(rental => rental.userId === currentUser.id);
+    
+    userStats.renting.points += userEquipmentRentals.length * 5; // 5 points per rental as consumer
+    userStats.selling.points += userPurchases.length * 5; // 5 points per purchase as consumer
 
-            return userStats;
-        }
+    // Calculate total points
+    userStats.totalPoints = userStats.quiz.points + userStats.selling.points + userStats.renting.points;
 
+    return userStats;
+}
         // Update user level and progress
         function updateLevelAndProgress(stats) {
             // Update total points
@@ -1109,38 +1116,45 @@
         }
 
         // Helper function to calculate stats for any user
-        function calculateUserStatsForUser(user) {
-            const stats = {
-                quiz: { points: 0 },
-                selling: { points: 0, byproductsSold: 0 },
-                renting: { points: 0, equipmentRented: 0 },
-                totalPoints: 0
-            };
+        // Helper function to calculate stats for any user - UPDATED VERSION
+function calculateUserStatsForUser(user) {
+    const stats = {
+        quiz: { points: 0 },
+        selling: { points: 0, byproductsSold: 0 },
+        renting: { points: 0, equipmentRented: 0 },
+        totalPoints: 0
+    };
 
-            // Calculate quiz points
-            const quizStats = JSON.parse(localStorage.getItem('quizStats') || '{}');
-            if (quizStats[user.id]) {
-                stats.quiz.points = quizStats[user.id].pointsEarned || 0;
-            }
+    // Calculate quiz points
+    const quizStats = JSON.parse(localStorage.getItem('quizStats') || '{}');
+    if (quizStats[user.id]) {
+        stats.quiz.points = quizStats[user.id].pointsEarned || 0;
+    }
 
-            // Calculate selling points
-            const byproductListings = JSON.parse(localStorage.getItem('byproductListings') || '[]');
-            const userByproducts = byproductListings.filter(item => item.ownerId === user.id);
-            stats.selling.byproductsSold = userByproducts.length;
-            stats.selling.points = stats.selling.byproductsSold * pointsConfig.selling.pointsPerSale;
+    // Calculate selling points from actual sales (as seller)
+    const byproductPurchases = JSON.parse(localStorage.getItem('byproductPurchases') || '[]');
+    const userSales = byproductPurchases.filter(purchase => purchase.ownerId === user.id);
+    stats.selling.byproductsSold = userSales.length;
+    stats.selling.points = stats.selling.byproductsSold * pointsConfig.selling.pointsPerSale;
 
-            // Calculate renting points
-            const equipmentListings = JSON.parse(localStorage.getItem('equipmentListings') || '[]');
-            const userEquipment = equipmentListings.filter(item => item.ownerId === user.id);
-            stats.renting.equipmentRented = userEquipment.length;
-            stats.renting.points = stats.renting.equipmentRented * pointsConfig.renting.pointsPerRental;
+    // Calculate renting points from actual rentals (as lender)
+    const equipmentRentals = JSON.parse(localStorage.getItem('equipmentRentals') || '[]');
+    const userRentals = equipmentRentals.filter(rental => rental.ownerId === user.id);
+    stats.renting.equipmentRented = userRentals.length;
+    stats.renting.points = stats.renting.equipmentRented * pointsConfig.renting.pointsPerRental;
 
-            // Calculate total points
-            stats.totalPoints = stats.quiz.points + stats.selling.points + stats.renting.points;
+    // Add points from buying/renting (as a consumer)
+    const userPurchases = byproductPurchases.filter(purchase => purchase.userId === user.id);
+    const userEquipmentRentals = equipmentRentals.filter(rental => rental.userId === user.id);
+    
+    stats.renting.points += userEquipmentRentals.length * 5; // 5 points per rental as consumer
+    stats.selling.points += userPurchases.length * 5; // 5 points per purchase as consumer
 
-            return stats;
-        }
+    // Calculate total points
+    stats.totalPoints = stats.quiz.points + stats.selling.points + stats.renting.points;
 
+    return stats;
+}
         // Initialize page
         function initPage() {
             const stats = calculateUserStats();

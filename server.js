@@ -4,38 +4,22 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 require('dotenv').config();
+const path = require("path");
 const app = express();
 
 // Middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000', 'https://khettsathhl.onxender.com'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(express.json());
+app.use(cors());
+app.use(express.static(__dirname));
 
-// MongoDB connection with better error handling
-const MONGODB_URI = process.env.MONGO_URI || 'mongodb+srv://nightshades257:SDb3O4aHBkVxF1Rx@cluster0.4pqhdrv.mongodb.net/khetsathi?retryWrites=true&w=majority&appName=Cluster0';
-
-console.log('Attempting to connect to MongoDB...');
-
-mongoose.connect(MONGODB_URI, {
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 10000,
-  socketTimeoutMS: 45000,
+  useUnifiedTopology: true
 })
-.then(() => console.log('✅ MongoDB connected successfully'))
-.catch(err => {
-  console.log('❌ MongoDB connection error:', err.message);
-  console.log('🔧 To fix this:');
-  console.log('1. Go to MongoDB Atlas → Network Access');
-  console.log('2. Click "Add IP Address"');
-  console.log('3. Add "0.0.0.0/0" to allow all IP addresses');
-  console.log('4. Or add Render.com IP ranges');
-});
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.log(err));
+'mongodb+srv://nightshades257:SDb3O4aHBkVxF1Rx@cluster0.4pqhdrv.mongodb.net/khetsathi?retryWrites=true&w=majority&appName=Cluster0'
 
 // User Schema
 const userSchema = new mongoose.Schema({
@@ -78,21 +62,13 @@ const byproductSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-// Badge Schema
-const badgeSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  badgeId: { type: String, required: true },
-  earnedAt: { type: Date, default: Date.now }
-});
-
 // Models
 const User = mongoose.model('User', userSchema);
 const Equipment = mongoose.model('Equipment', equipmentSchema);
 const ByProduct = mongoose.model('ByProduct', byproductSchema);
-const Badge = mongoose.model('Badge', badgeSchema);
 
 // JWT Secret
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-12345';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Middleware to verify token
 const authenticateToken = (req, res, next) => {
@@ -113,46 +89,6 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Routes
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  const dbStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected';
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    database: dbStatus,
-    message: 'KhetSathi API Server is running',
-    version: '1.0.0'
-  });
-});
-
-// Root endpoint - API documentation
-app.get('/', (req, res) => {
-  res.json({ 
-    message: '🚜 KhetSathi Farming Platform API',
-    description: 'Equipment rental and byproduct trading platform for farmers',
-    version: '1.0.0',
-    endpoints: {
-      auth: {
-        signup: 'POST /api/signup',
-        login: 'POST /api/login',
-        profile: 'GET /api/user'
-      },
-      equipment: {
-        list: 'GET /api/equipment',
-        add: 'POST /api/equipment',
-        my_listings: 'GET /api/my-equipment'
-      },
-      byproducts: {
-        list: 'GET /api/byproducts',
-        add: 'POST /api/byproducts',
-        my_listings: 'GET /api/my-byproducts'
-      },
-      health: 'GET /api/health'
-    },
-    documentation: 'All endpoints except /api/health require Authorization header with Bearer token'
-  });
-});
 
 // User registration
 app.post('/api/signup', async (req, res) => {
@@ -305,6 +241,42 @@ app.put('/api/user', authenticateToken, async (req, res) => {
       message: 'Profile updated successfully',
       user
     });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Change password
+app.put('/api/user/password', authenticateToken, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    // Validate new password
+    const passwordRegex = /^(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{5,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({ 
+        message: 'Password must contain at least one lowercase letter, one number, one symbol, and be at least 5 characters long' 
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({ message: 'Password updated successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -480,51 +452,420 @@ app.delete('/api/byproducts/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Chatbot API endpoint
-app.post('/api/chatbot', authenticateToken, async (req, res) => {
+// Serve the main page
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/public/index.html');
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+// Add these routes to your existing server.js file
+
+// Quiz routes
+
+// Get quiz questions
+app.get('/api/quiz/:type', authenticateToken, async (req, res) => {
   try {
-    const { message } = req.body;
+    const { type } = req.params;
     
-    const responses = {
-      'hello': 'Hello! How can I help you with your farming needs today?',
-      'hi': 'Hi there! I\'m your farming assistant. What can I help you with?',
-      'equipment': 'You can rent farming equipment from other farmers in your area. Check the Equipment section to browse available tools.',
-      'byproduct': 'You can buy and sell agricultural byproducts in the ByProducts section.',
-      'greenpoints': 'GreenPoints are earned by participating in sustainable activities.',
-      'default': 'I\'m here to help with farming equipment rental and byproduct trading.'
+    // In a real application, you would fetch questions from a database
+    // For now, we'll return sample questions based on type
+    const quizQuestions = {
+      sustainable: [
+        {
+          question: "What is the primary goal of sustainable agriculture?",
+          options: [
+            "Maximizing crop yield at any cost",
+            "Balancing environmental health, economic profitability, and social equity",
+            "Using only organic methods regardless of effectiveness",
+            "Eliminating all pesticide use"
+          ],
+          correct: 1
+        },
+        // Add more questions...
+      ],
+      water: [
+        // Water conservation questions
+      ],
+      waste: [
+        // Waste management questions
+      ]
     };
     
-    const lowerMessage = message.toLowerCase().trim();
-    let response = responses.default;
-    
-    for (const [key, value] of Object.entries(responses)) {
-      if (lowerMessage.includes(key)) {
-        response = value;
-        break;
-      }
-    }
-    
-    res.json({ response });
+    const questions = quizQuestions[type] || [];
+    res.json({ questions, title: `${type.charAt(0).toUpperCase() + type.slice(1)} Farming Quiz` });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+// Submit quiz results
+app.post('/api/quiz/submit', authenticateToken, async (req, res) => {
+  try {
+    const { quizType, score, correctAnswers, totalQuestions } = req.body;
+    
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Calculate points earned (5 points per 10% score)
+    const pointsEarned = Math.round(score / 10) * 5;
+    
+    // Update user's GreenPoints
+    user.greenPoints += pointsEarned;
+    
+    // Save quiz result
+    // In a real application, you would save this to a QuizResult collection
+    await user.save();
+    
+    res.json({
+      message: 'Quiz submitted successfully',
+      pointsEarned,
+      totalGreenPoints: user.greenPoints
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-// Handle 404
-app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+// Get user's quiz statistics
+app.get('/api/quiz/stats', authenticateToken, async (req, res) => {
+  try {
+    // In a real application, you would calculate these from the QuizResult collection
+    const userStats = {
+      quizzesTaken: 5,
+      averageScore: 78,
+      pointsEarned: 195,
+      correctAnswers: 39,
+      totalQuestions: 50
+    };
+    
+    res.json(userStats);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 Health check: https://khettsathhl.onxender.com/api/health`);
-  console.log(`📚 API Docs: https://khettsathhl.onxender.com/`);
+// Purchase routes
+
+// Create equipment rental
+app.post('/api/purchases/equipment', authenticateToken, async (req, res) => {
+  try {
+    const { equipmentId, duration, totalAmount } = req.body;
+    
+    const equipment = await Equipment.findById(equipmentId);
+    if (!equipment) {
+      return res.status(404).json({ message: 'Equipment not found' });
+    }
+    
+    // Create rental record
+    // In a real application, you would save this to a Rental collection
+    const rental = {
+      userId: req.user.userId,
+      equipmentId,
+      equipmentName: equipment.name,
+      duration,
+      totalAmount,
+      rentalDate: new Date(),
+      status: 'active'
+    };
+    
+    // Update equipment availability if needed
+    equipment.isAvailable = false;
+    await equipment.save();
+    
+    res.status(201).json({
+      message: 'Equipment rented successfully',
+      rental
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
+
+// Create byproduct purchase
+app.post('/api/purchases/byproduct', authenticateToken, async (req, res) => {
+  try {
+    const { byproductId, quantity, totalAmount } = req.body;
+    
+    const byproduct = await ByProduct.findById(byproductId);
+    if (!byproduct) {
+      return res.status(404).json({ message: 'ByProduct not found' });
+    }
+    
+    // Create purchase record
+    // In a real application, you would save this to a Purchase collection
+    const purchase = {
+      userId: req.user.userId,
+      byproductId,
+      byproductName: byproduct.name,
+      quantity,
+      totalAmount,
+      purchaseDate: new Date(),
+      status: 'completed'
+    };
+    
+    // Update byproduct availability if needed
+    byproduct.isAvailable = false;
+    await byproduct.save();
+    
+    res.status(201).json({
+      message: 'ByProduct purchased successfully',
+      purchase
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get user's purchases
+app.get('/api/purchases', authenticateToken, async (req, res) => {
+  try {
+    // In a real application, you would fetch these from Rental and Purchase collections
+    const equipmentPurchases = []; // Fetch from database
+    const byproductPurchases = []; // Fetch from database
+    
+    res.json({
+      equipmentPurchases,
+      byproductPurchases
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Community routes
+
+// Get chat channels
+app.get('/api/community/channels', authenticateToken, async (req, res) => {
+  try {
+    // In a real application, you would fetch these from a Channel collection
+    const channels = [
+      {
+        id: 'general',
+        name: 'General Discussion',
+        description: 'Talk about anything related to farming',
+        icon: 'fas fa-comments',
+        members: 42
+      },
+      // Add more channels...
+    ];
+    
+    res.json(channels);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get channel messages
+app.get('/api/community/channels/:channelId/messages', authenticateToken, async (req, res) => {
+  try {
+    const { channelId } = req.params;
+    
+    // In a real application, you would fetch these from a Message collection
+    const messages = []; // Fetch from database
+    
+    res.json(messages);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Send message
+app.post('/api/community/channels/:channelId/messages', authenticateToken, async (req, res) => {
+  try {
+    const { channelId } = req.params;
+    const { text } = req.body;
+    
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Create message
+    // In a real application, you would save this to a Message collection
+    const message = {
+      id: Date.now().toString(),
+      sender: user.username,
+      senderId: user._id,
+      text,
+      channelId,
+      timestamp: new Date()
+    };
+    
+    res.status(201).json({
+      message: 'Message sent successfully',
+      message: message
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Add this route to your server.js file
+
+// Chatbot API endpoint
+app.post('/api/chatbot', authenticateToken, async (req, res) => {
+    try {
+        const { message } = req.body;
+        
+        // Simple rule-based responses (same as frontend logic)
+        const responses = {
+            // ... same knowledge base as frontend
+        };
+        
+        const lowerMessage = message.toLowerCase().trim();
+        let response = responses.default;
+        
+        // Find matching response
+        for (const [key, value] of Object.entries(responses)) {
+            if (lowerMessage.includes(key) || key === lowerMessage) {
+                response = value;
+                break;
+            }
+        }
+        
+        res.json({ response });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Add these routes to your server.js
+
+// Get user's GreenPoints and badges
+app.get('/api/greenpoints', authenticateToken, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Calculate points from various activities
+        const equipmentListings = await Equipment.find({ ownerId: req.user.userId });
+        const byproductListings = await ByProduct.find({ ownerId: req.user.userId });
+        
+        // Calculate points
+        const quizPoints = user.greenPoints || 0;
+        const sellingPoints = byproductListings.length * 15; // 15 points per sale
+        const rentingPoints = equipmentListings.length * 10; // 10 points per rental
+        
+        const totalPoints = quizPoints + sellingPoints + rentingPoints;
+
+        // Get user badges
+        const userBadges = await Badge.find({ userId: req.user.userId });
+
+        res.json({
+            totalPoints,
+            breakdown: {
+                quiz: quizPoints,
+                selling: sellingPoints,
+                renting: rentingPoints
+            },
+            stats: {
+                quizzesTaken: user.quizzesTaken || 0,
+                byproductsSold: byproductListings.length,
+                equipmentRented: equipmentListings.length
+            },
+            badges: userBadges
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Award badge to user
+app.post('/api/greenpoints/badges', authenticateToken, async (req, res) => {
+    try {
+        const { badgeId } = req.body;
+        
+        // Check if user already has the badge
+        const existingBadge = await Badge.findOne({ 
+            userId: req.user.userId, 
+            badgeId 
+        });
+        
+        if (existingBadge) {
+            return res.status(400).json({ message: 'Badge already earned' });
+        }
+
+        // Create new badge
+        const newBadge = new Badge({
+            userId: req.user.userId,
+            badgeId,
+            earnedAt: new Date()
+        });
+
+        await newBadge.save();
+
+        res.status(201).json({
+            message: 'Badge awarded successfully',
+            badge: newBadge
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Get leaderboard
+app.get('/api/greenpoints/leaderboard', authenticateToken, async (req, res) => {
+    try {
+        const users = await User.find().select('username greenPoints');
+        
+        // Calculate total points for each user
+        const leaderboard = await Promise.all(users.map(async (user) => {
+            const equipmentListings = await Equipment.find({ ownerId: user._id });
+            const byproductListings = await ByProduct.find({ ownerId: user._id });
+            
+            const sellingPoints = byproductListings.length * 15;
+            const rentingPoints = equipmentListings.length * 10;
+            const totalPoints = (user.greenPoints || 0) + sellingPoints + rentingPoints;
+            
+            return {
+                username: user.username,
+                points: totalPoints,
+                initial: user.username.charAt(0).toUpperCase()
+            };
+        }));
+
+        // Sort by points (descending)
+        leaderboard.sort((a, b) => b.points - a.points);
+
+        res.json(leaderboard.slice(0, 10)); // Top 10
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Badge Schema
+const badgeSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    badgeId: { type: String, required: true },
+    earnedAt: { type: Date, default: Date.now }
+});
+
+const Badge = mongoose.model('Badge', badgeSchema);
+
+app.get('/', (req, res) => {
+    res.sendFile(__dirname, '/index.html');
+});
+
+require('dotenv').config();
+in this whole code is anything there which is stopping the 2 systems to communicate

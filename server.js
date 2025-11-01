@@ -8,18 +8,23 @@ const path = require("path");
 const app = express();
 
 // Middleware
-app.use(express.json());
-app.use(cors());
-app.use(express.static(__dirname));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI, {
+mongoose.connect(process.env.MONGO_URI || 'mongodb+srv://nightshades257:SDb3O4aHBkVxF1Rx@cluster0.4pqhdrv.mongodb.net/khetsathi?retryWrites=true&w=majority&appName=Cluster0', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
 .then(() => console.log('MongoDB connected'))
-.catch(err => console.log(err));
-'mongodb+srv://nightshades257:SDb3O4aHBkVxF1Rx@cluster0.4pqhdrv.mongodb.net/khetsathi?retryWrites=true&w=majority&appName=Cluster0'
+.catch(err => console.log('MongoDB connection error:', err));
 
 // User Schema
 const userSchema = new mongoose.Schema({
@@ -62,10 +67,18 @@ const byproductSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+// Badge Schema
+const badgeSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  badgeId: { type: String, required: true },
+  earnedAt: { type: Date, default: Date.now }
+});
+
 // Models
 const User = mongoose.model('User', userSchema);
 const Equipment = mongoose.model('Equipment', equipmentSchema);
 const ByProduct = mongoose.model('ByProduct', byproductSchema);
+const Badge = mongoose.model('Badge', badgeSchema);
 
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -89,6 +102,23 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Routes
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+  });
+});
+
+// Test authentication endpoint
+app.get('/api/test-auth', authenticateToken, (req, res) => {
+  res.json({ 
+    message: 'Authentication working', 
+    user: req.user 
+  });
+});
 
 // User registration
 app.post('/api/signup', async (req, res) => {
@@ -452,18 +482,6 @@ app.delete('/api/byproducts/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Serve the main page
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
-});
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-// Add these routes to your existing server.js file
-
 // Quiz routes
 
 // Get quiz questions
@@ -471,8 +489,7 @@ app.get('/api/quiz/:type', authenticateToken, async (req, res) => {
   try {
     const { type } = req.params;
     
-    // In a real application, you would fetch questions from a database
-    // For now, we'll return sample questions based on type
+    // Sample questions based on type
     const quizQuestions = {
       sustainable: [
         {
@@ -485,13 +502,40 @@ app.get('/api/quiz/:type', authenticateToken, async (req, res) => {
           ],
           correct: 1
         },
-        // Add more questions...
+        {
+          question: "Which practice helps improve soil health?",
+          options: [
+            "Monocropping",
+            "Crop rotation",
+            "Excessive tilling",
+            "Using synthetic fertilizers only"
+          ],
+          correct: 1
+        }
       ],
       water: [
-        // Water conservation questions
+        {
+          question: "What is the most efficient irrigation method?",
+          options: [
+            "Flood irrigation",
+            "Sprinkler irrigation",
+            "Drip irrigation",
+            "Furrow irrigation"
+          ],
+          correct: 2
+        }
       ],
       waste: [
-        // Waste management questions
+        {
+          question: "How can agricultural waste be managed sustainably?",
+          options: [
+            "Burning in open fields",
+            "Landfilling",
+            "Composting and recycling",
+            "Dumping in water bodies"
+          ],
+          correct: 2
+        }
       ]
     };
     
@@ -519,8 +563,6 @@ app.post('/api/quiz/submit', authenticateToken, async (req, res) => {
     // Update user's GreenPoints
     user.greenPoints += pointsEarned;
     
-    // Save quiz result
-    // In a real application, you would save this to a QuizResult collection
     await user.save();
     
     res.json({
@@ -537,7 +579,6 @@ app.post('/api/quiz/submit', authenticateToken, async (req, res) => {
 // Get user's quiz statistics
 app.get('/api/quiz/stats', authenticateToken, async (req, res) => {
   try {
-    // In a real application, you would calculate these from the QuizResult collection
     const userStats = {
       quizzesTaken: 5,
       averageScore: 78,
@@ -566,7 +607,6 @@ app.post('/api/purchases/equipment', authenticateToken, async (req, res) => {
     }
     
     // Create rental record
-    // In a real application, you would save this to a Rental collection
     const rental = {
       userId: req.user.userId,
       equipmentId,
@@ -602,7 +642,6 @@ app.post('/api/purchases/byproduct', authenticateToken, async (req, res) => {
     }
     
     // Create purchase record
-    // In a real application, you would save this to a Purchase collection
     const purchase = {
       userId: req.user.userId,
       byproductId,
@@ -630,9 +669,8 @@ app.post('/api/purchases/byproduct', authenticateToken, async (req, res) => {
 // Get user's purchases
 app.get('/api/purchases', authenticateToken, async (req, res) => {
   try {
-    // In a real application, you would fetch these from Rental and Purchase collections
-    const equipmentPurchases = []; // Fetch from database
-    const byproductPurchases = []; // Fetch from database
+    const equipmentPurchases = [];
+    const byproductPurchases = [];
     
     res.json({
       equipmentPurchases,
@@ -649,7 +687,6 @@ app.get('/api/purchases', authenticateToken, async (req, res) => {
 // Get chat channels
 app.get('/api/community/channels', authenticateToken, async (req, res) => {
   try {
-    // In a real application, you would fetch these from a Channel collection
     const channels = [
       {
         id: 'general',
@@ -658,7 +695,20 @@ app.get('/api/community/channels', authenticateToken, async (req, res) => {
         icon: 'fas fa-comments',
         members: 42
       },
-      // Add more channels...
+      {
+        id: 'equipment',
+        name: 'Equipment Sharing',
+        description: 'Discuss equipment rental and sharing',
+        icon: 'fas fa-tractor',
+        members: 28
+      },
+      {
+        id: 'byproducts',
+        name: 'ByProducts Market',
+        description: 'Buy and sell agricultural byproducts',
+        icon: 'fas fa-seedling',
+        members: 35
+      }
     ];
     
     res.json(channels);
@@ -673,8 +723,7 @@ app.get('/api/community/channels/:channelId/messages', authenticateToken, async 
   try {
     const { channelId } = req.params;
     
-    // In a real application, you would fetch these from a Message collection
-    const messages = []; // Fetch from database
+    const messages = [];
     
     res.json(messages);
   } catch (error) {
@@ -694,8 +743,6 @@ app.post('/api/community/channels/:channelId/messages', authenticateToken, async
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Create message
-    // In a real application, you would save this to a Message collection
     const message = {
       id: Date.now().toString(),
       sender: user.username,
@@ -715,156 +762,166 @@ app.post('/api/community/channels/:channelId/messages', authenticateToken, async
   }
 });
 
-// Add this route to your server.js file
-
 // Chatbot API endpoint
 app.post('/api/chatbot', authenticateToken, async (req, res) => {
-    try {
-        const { message } = req.body;
-        
-        // Simple rule-based responses (same as frontend logic)
-        const responses = {
-            // ... same knowledge base as frontend
-        };
-        
-        const lowerMessage = message.toLowerCase().trim();
-        let response = responses.default;
-        
-        // Find matching response
-        for (const [key, value] of Object.entries(responses)) {
-            if (lowerMessage.includes(key) || key === lowerMessage) {
-                response = value;
-                break;
-            }
-        }
-        
-        res.json({ response });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+  try {
+    const { message } = req.body;
+    
+    // Simple rule-based responses
+    const responses = {
+      'hello': 'Hello! How can I help you with your farming needs today?',
+      'hi': 'Hi there! I\'m your farming assistant. What can I help you with?',
+      'equipment': 'You can rent farming equipment from other farmers in your area. Check the Equipment section to browse available tools.',
+      'byproduct': 'You can buy and sell agricultural byproducts in the ByProducts section. It\'s a great way to reduce waste and earn extra income!',
+      'greenpoints': 'GreenPoints are earned by participating in sustainable activities like renting equipment, selling byproducts, and taking educational quizzes.',
+      'sustainable': 'Sustainable farming practices include crop rotation, water conservation, organic fertilization, and integrated pest management.',
+      'rent': 'To rent equipment, go to the Equipment section, find what you need, and contact the owner directly through the app.',
+      'sell': 'To sell byproducts, go to the ByProducts section and click "Add New Listing" to create your listing.',
+      'default': 'I\'m here to help with farming equipment rental, byproduct trading, and sustainable farming advice. What would you like to know more about?'
+    };
+    
+    const lowerMessage = message.toLowerCase().trim();
+    let response = responses.default;
+    
+    // Find matching response
+    for (const [key, value] of Object.entries(responses)) {
+      if (lowerMessage.includes(key) || key === lowerMessage) {
+        response = value;
+        break;
+      }
     }
+    
+    res.json({ response });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-// Add these routes to your server.js
+// GreenPoints and badges routes
 
 // Get user's GreenPoints and badges
 app.get('/api/greenpoints', authenticateToken, async (req, res) => {
-    try {
-        const user = await User.findById(req.user.userId);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Calculate points from various activities
-        const equipmentListings = await Equipment.find({ ownerId: req.user.userId });
-        const byproductListings = await ByProduct.find({ ownerId: req.user.userId });
-        
-        // Calculate points
-        const quizPoints = user.greenPoints || 0;
-        const sellingPoints = byproductListings.length * 15; // 15 points per sale
-        const rentingPoints = equipmentListings.length * 10; // 10 points per rental
-        
-        const totalPoints = quizPoints + sellingPoints + rentingPoints;
-
-        // Get user badges
-        const userBadges = await Badge.find({ userId: req.user.userId });
-
-        res.json({
-            totalPoints,
-            breakdown: {
-                quiz: quizPoints,
-                selling: sellingPoints,
-                renting: rentingPoints
-            },
-            stats: {
-                quizzesTaken: user.quizzesTaken || 0,
-                byproductsSold: byproductListings.length,
-                equipmentRented: equipmentListings.length
-            },
-            badges: userBadges
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
+
+    const equipmentListings = await Equipment.find({ ownerId: req.user.userId });
+    const byproductListings = await ByProduct.find({ ownerId: req.user.userId });
+    
+    // Calculate points
+    const quizPoints = user.greenPoints || 0;
+    const sellingPoints = byproductListings.length * 15;
+    const rentingPoints = equipmentListings.length * 10;
+    
+    const totalPoints = quizPoints + sellingPoints + rentingPoints;
+
+    const userBadges = await Badge.find({ userId: req.user.userId });
+
+    res.json({
+      totalPoints,
+      breakdown: {
+        quiz: quizPoints,
+        selling: sellingPoints,
+        renting: rentingPoints
+      },
+      stats: {
+        quizzesTaken: user.quizzesTaken || 0,
+        byproductsSold: byproductListings.length,
+        equipmentRented: equipmentListings.length
+      },
+      badges: userBadges
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // Award badge to user
 app.post('/api/greenpoints/badges', authenticateToken, async (req, res) => {
-    try {
-        const { badgeId } = req.body;
-        
-        // Check if user already has the badge
-        const existingBadge = await Badge.findOne({ 
-            userId: req.user.userId, 
-            badgeId 
-        });
-        
-        if (existingBadge) {
-            return res.status(400).json({ message: 'Badge already earned' });
-        }
-
-        // Create new badge
-        const newBadge = new Badge({
-            userId: req.user.userId,
-            badgeId,
-            earnedAt: new Date()
-        });
-
-        await newBadge.save();
-
-        res.status(201).json({
-            message: 'Badge awarded successfully',
-            badge: newBadge
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+  try {
+    const { badgeId } = req.body;
+    
+    // Check if user already has the badge
+    const existingBadge = await Badge.findOne({ 
+      userId: req.user.userId, 
+      badgeId 
+    });
+    
+    if (existingBadge) {
+      return res.status(400).json({ message: 'Badge already earned' });
     }
+
+    // Create new badge
+    const newBadge = new Badge({
+      userId: req.user.userId,
+      badgeId,
+      earnedAt: new Date()
+    });
+
+    await newBadge.save();
+
+    res.status(201).json({
+      message: 'Badge awarded successfully',
+      badge: newBadge
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // Get leaderboard
 app.get('/api/greenpoints/leaderboard', authenticateToken, async (req, res) => {
-    try {
-        const users = await User.find().select('username greenPoints');
-        
-        // Calculate total points for each user
-        const leaderboard = await Promise.all(users.map(async (user) => {
-            const equipmentListings = await Equipment.find({ ownerId: user._id });
-            const byproductListings = await ByProduct.find({ ownerId: user._id });
-            
-            const sellingPoints = byproductListings.length * 15;
-            const rentingPoints = equipmentListings.length * 10;
-            const totalPoints = (user.greenPoints || 0) + sellingPoints + rentingPoints;
-            
-            return {
-                username: user.username,
-                points: totalPoints,
-                initial: user.username.charAt(0).toUpperCase()
-            };
-        }));
+  try {
+    const users = await User.find().select('username greenPoints');
+    
+    const leaderboard = await Promise.all(users.map(async (user) => {
+      const equipmentListings = await Equipment.find({ ownerId: user._id });
+      const byproductListings = await ByProduct.find({ ownerId: user._id });
+      
+      const sellingPoints = byproductListings.length * 15;
+      const rentingPoints = equipmentListings.length * 10;
+      const totalPoints = (user.greenPoints || 0) + sellingPoints + rentingPoints;
+      
+      return {
+        username: user.username,
+        points: totalPoints,
+        initial: user.username.charAt(0).toUpperCase()
+      };
+    }));
 
-        // Sort by points (descending)
-        leaderboard.sort((a, b) => b.points - a.points);
+    // Sort by points (descending)
+    leaderboard.sort((a, b) => b.points - a.points);
 
-        res.json(leaderboard.slice(0, 10)); // Top 10
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
+    res.json(leaderboard.slice(0, 10));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-// Badge Schema
-const badgeSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    badgeId: { type: String, required: true },
-    earnedAt: { type: Date, default: Date.now }
-});
-
-const Badge = mongoose.model('Badge', badgeSchema);
-
+// Serve the main page
 app.get('/', (req, res) => {
-    res.sendFile(__dirname, '/index.html');
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-require('dotenv').config();
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
+});
+
+// Handle 404
+app.use('*', (req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Health check available at: http://localhost:${PORT}/api/health`);
+});

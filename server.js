@@ -859,3 +859,7 @@ const badgeSchema = new mongoose.Schema({
 });
 
 const Badge = mongoose.model('Badge', badgeSchema);
+
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});

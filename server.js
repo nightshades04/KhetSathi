@@ -13,10 +13,7 @@ app.use(cors());
 app.use(express.static(__dirname));
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/khetsathi', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongodb+srv://nightshades257:SDb3O4aHBkVxF1Rx@cluster0.4pqhdrv.mongodb.net/khetsathi?retryWrites=true&w=majority&appName=Cluster0
 
 // User Schema
 const userSchema = new mongoose.Schema({

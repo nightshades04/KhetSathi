@@ -868,4 +868,3 @@ app.get('/', (req, res) => {
 });
 
 require('dotenv').config();
-in this whole code is anything there which is stopping the 2 systems to communicate

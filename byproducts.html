@@ -751,6 +751,93 @@
             alert('ByProduct listed successfully!');
         }
 
+        // Add this function to the byproducts.html script section
+        function buyByproduct(byproductId) {
+            const byproductListings = JSON.parse(localStorage.getItem('byproductListings') || '[]');
+            const byproduct = byproductListings.find(item => item.id === byproductId);
+            
+            if (!byproduct) {
+                alert('ByProduct not found!');
+                return;
+            }
+        
+            // Check if user is trying to buy their own byproduct
+            if (byproduct.ownerId === currentUser.id) {
+                alert('You cannot buy your own byproduct!');
+                return;
+            }
+        
+            // Get quantity from user
+            const quantityToBuy = prompt(`Enter quantity to buy (available: ${byproduct.quantity}):`, byproduct.quantity);
+            if (!quantityToBuy) {
+                alert('Please enter a valid quantity!');
+                return;
+            }
+        
+            // Calculate total cost (simple calculation - in real app you'd have proper pricing logic)
+            const totalAmount = byproduct.price; // This is simplified - you might want price per unit
+        
+            // Confirm purchase
+            const confirmPurchase = confirm(
+                `Confirm Purchase:\n\n` +
+                `ByProduct: ${byproduct.name}\n` +
+                `Quantity: ${quantityToBuy}\n` +
+                `Price: ₹${byproduct.price}\n` +
+                `Total Amount: ₹${totalAmount}\n\n` +
+                `Click OK to proceed with purchase.`
+            );
+        
+            if (!confirmPurchase) return;
+        
+            // Create purchase record
+            const purchase = {
+                id: 'purchase_' + Date.now(),
+                userId: currentUser.id,
+                byproductId: byproduct.id,
+                name: byproduct.name,
+                description: byproduct.description,
+                image: byproduct.image,
+                purchaseDate: new Date().toISOString(),
+                quantity: quantityToBuy,
+                totalAmount: totalAmount,
+                location: byproduct.location,
+                ownerId: byproduct.ownerId,
+                ownerName: byproduct.ownerName,
+                status: 'completed',
+                type: 'byproduct'
+            };
+        
+            // Save to purchases
+            const byproductPurchases = JSON.parse(localStorage.getItem('byproductPurchases') || '[]');
+            byproductPurchases.push(purchase);
+            localStorage.setItem('byproductPurchases', JSON.stringify(byproductPurchases));
+        
+            // Award GreenPoints for buying
+            awardPurchasePoints(currentUser.id);
+        
+            // Remove the purchased byproduct from listings (optional)
+            // const updatedListings = byproductListings.filter(item => item.id !== byproductId);
+            // localStorage.setItem('byproductListings', JSON.stringify(updatedListings));
+        
+            alert(`Successfully purchased "${byproduct.name}"! Total: ₹${totalAmount}`);
+        }
+        
+        // Function to award purchase points
+        function awardPurchasePoints(userId) {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = users.findIndex(u => u.id === userId);
+            
+            if (userIndex !== -1) {
+                if (!users[userIndex].greenPoints) users[userIndex].greenPoints = 0;
+                users[userIndex].greenPoints += 5; // 5 points per purchase
+                
+                // Update current user
+                currentUser.greenPoints = users[userIndex].greenPoints;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+        }
+
         // Initial load
         loadByproductListings();
     </script>

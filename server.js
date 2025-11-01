@@ -10,7 +10,7 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors());
-app.use(express.static('public'));
+app.use(express.static(__dirname));
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/khetsathi', {
@@ -861,5 +861,5 @@ const badgeSchema = new mongoose.Schema({
 const Badge = mongoose.model('Badge', badgeSchema);
 
 app.get('/', (req, res) => {
-    res.sendFile(public + '/index.html');
+    res.sendFile(__dirname, '/index.html');
 });

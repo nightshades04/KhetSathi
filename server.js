@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.static(__dirname));
 
 // MongoDB connection
-mongodb+srv://nightshades257:SDb3O4aHBkVxF1Rx@cluster0.4pqhdrv.mongodb.net/khetsathi?retryWrites=true&w=majority&appName=Cluster0
+'mongodb+srv://nightshades257:SDb3O4aHBkVxF1Rx@cluster0.4pqhdrv.mongodb.net/khetsathi?retryWrites=true&w=majority&appName=Cluster0'
 
 // User Schema
 const userSchema = new mongoose.Schema({

@@ -13,6 +13,12 @@ app.use(cors());
 app.use(express.static(__dirname));
 
 // MongoDB connection
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.log(err));
 'mongodb+srv://nightshades257:SDb3O4aHBkVxF1Rx@cluster0.4pqhdrv.mongodb.net/khetsathi?retryWrites=true&w=majority&appName=Cluster0'
 
 // User Schema
@@ -860,3 +866,5 @@ const Badge = mongoose.model('Badge', badgeSchema);
 app.get('/', (req, res) => {
     res.sendFile(__dirname, '/index.html');
 });
+
+require('dotenv').config();

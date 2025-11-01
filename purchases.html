@@ -573,248 +573,235 @@
     </div>
 
     <script>
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (!currentUser) {
-            window.location.href = 'auth.html';
-        } else {
-            document.getElementById('user-name').textContent = currentUser.username;
-            document.getElementById('user-avatar').textContent = currentUser.username.charAt(0).toUpperCase();
-        }
+    // Check if user is logged in
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) {
+        window.location.href = 'auth.html';
+    } else {
+        // Display user info
+        document.getElementById('user-name').textContent = currentUser.username;
+        document.getElementById('user-avatar').textContent = currentUser.username.charAt(0).toUpperCase();
+    }
 
-        document.querySelector('.toggle-btn').addEventListener('click', function() {
-            document.querySelector('.sidebar').classList.toggle('collapsed');
-            document.querySelector('.main-content').classList.toggle('expanded');
-        });
+    // Sidebar toggle
+    document.querySelector('.toggle-btn').addEventListener('click', function() {
+        document.querySelector('.sidebar').classList.toggle('collapsed');
+        document.querySelector('.main-content').classList.toggle('expanded');
+    });
 
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-
-                const tabId = this.getAttribute('data-tab') + '-tab';
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                document.getElementById(tabId).classList.add('active');
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show corresponding content
+            const tabId = this.getAttribute('data-tab') + '-tab';
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
             });
+            document.getElementById(tabId).classList.add('active');
+            
+            // Load listings for the active tab
+            if (this.getAttribute('data-tab') === 'equipment') {
+                loadEquipmentRentals();
+            } else {
+                loadByproductPurchases();
+            }
         });
+    });
 
-        function loadPurchaseData() {
-            // NOTE: In a real app, this data would come from a database.
-            // For demo purposes, we'll create dummy data if it doesn't exist.
-            let equipmentPurchases = JSON.parse(localStorage.getItem('equipmentPurchases') || '[]');
-            let byproductPurchases = JSON.parse(localStorage.getItem('byproductPurchases') || '[]');
+    // Load purchase data
+    function loadPurchaseData() {
+        const equipmentRentals = JSON.parse(localStorage.getItem('equipmentRentals') || '[]');
+        const byproductPurchases = JSON.parse(localStorage.getItem('byproductPurchases') || '[]');
+        
+        // Filter current user's purchases
+        const userEquipmentRentals = equipmentRentals.filter(rental => rental.userId === currentUser.id);
+        const userByproductPurchases = byproductPurchases.filter(purchase => purchase.userId === currentUser.id);
+        
+        // Update stats
+        document.getElementById('total-purchases').textContent = userEquipmentRentals.length + userByproductPurchases.length;
+        document.getElementById('active-rentals').textContent = userEquipmentRentals.filter(p => p.status === 'active').length;
+        
+        const totalSpent = userEquipmentRentals.reduce((sum, p) => sum + p.totalAmount, 0) +
+                          userByproductPurchases.reduce((sum, p) => sum + p.totalAmount, 0);
+        document.getElementById('total-spent').textContent = '₹' + totalSpent;
+        
+        // Calculate estimated savings (for demo, we'll use 30% of equipment rental costs)
+        const equipmentSavings = userEquipmentRentals.reduce((sum, p) => sum + (p.totalAmount * 0.3), 0);
+        document.getElementById('savings').textContent = '₹' + Math.round(equipmentSavings);
+        
+        // Load equipment rentals
+        loadEquipmentRentals();
+        
+        // Load byproduct purchases
+        loadByproductPurchases();
+    }
 
-            // --- START DUMMY DATA ---
-            // Create dummy data for the current user if they have none
-            if (equipmentPurchases.filter(p => p.userId === currentUser.id).length === 0 &&
-                byproductPurchases.filter(p => p.userId === currentUser.id).length === 0) {
-                
-                equipmentPurchases.push({
-                    id: 'e_123',
-                    userId: currentUser.id,
-                    equipmentId: 'eq_901',
-                    name: 'Sonalika Tractor',
-                    description: 'Heavy-duty tractor for ploughing.',
-                    image: 'https://via.placeholder.com/120x120.png/E8F5E9/2E7D32?text=Tractor',
-                    rentalDate: new Date('2025-10-25').toISOString(),
-                    duration: 3,
-                    location: 'Pune',
-                    totalAmount: 6000,
-                    status: 'active',
-                    ownerId: 'user_002'
-                });
-                
-                equipmentPurchases.push({
-                    id: 'e_124',
-                    userId: currentUser.id,
-                    equipmentId: 'eq_902',
-                    name: 'Water Pump',
-                    description: '5HP Motor Pump for irrigation.',
-                    image: 'https://via.placeholder.com/120x120.png/E8F5E9/2E7D32?text=Pump',
-                    rentalDate: new Date('2025-10-15').toISOString(),
-                    duration: 2,
-                    location: 'Satara',
-                    totalAmount: 1000,
-                    status: 'completed',
-                    ownerId: 'user_003'
-                });
-                
-                byproductPurchases.push({
-                    id: 'b_456',
-                    userId: currentUser.id,
-                    byproductId: 'bp_801',
-                    name: 'Rice Husk',
-                    description: 'High-quality rice husk for animal feed.',
-                    image: 'https://via.placeholder.com/120x120.png/FFF3E0/F57C00?text=Husk',
-                    purchaseDate: new Date('2025-10-28').toISOString(),
-                    quantity: '200 kg',
-                    location: 'Nashik',
-                    totalAmount: 800,
-                    status: 'completed',
-                    ownerId: 'user_004'
-                });
-                
-                localStorage.setItem('equipmentPurchases', JSON.stringify(equipmentPurchases));
-                localStorage.setItem('byproductPurchases', JSON.stringify(byproductPurchases));
-            }
-            // --- END DUMMY DATA ---
-
-
-            const userEquipmentPurchases = equipmentPurchases.filter(purchase => purchase.userId === currentUser.id);
-            const userByproductPurchases = byproductPurchases.filter(purchase => purchase.userId === currentUser.id);
-
-            document.getElementById('total-purchases').textContent = userEquipmentPurchases.length + userByproductPurchases.length;
-            document.getElementById('active-rentals').textContent = userEquipmentPurchases.filter(p => p.status === 'active').length;
-            
-            const totalSpent = userEquipmentPurchases.reduce((sum, p) => sum + p.totalAmount, 0) +
-                                 userByproductPurchases.reduce((sum, p) => sum + p.totalAmount, 0);
-            document.getElementById('total-spent').textContent = '₹' + totalSpent;
-
-            // Assuming 30% savings on renting vs. buying new
-            const equipmentSavings = userEquipmentPurchases.reduce((sum, p) => sum + (p.totalAmount * 0.3), 0);
-            document.getElementById('savings').textContent = '₹' + Math.round(equipmentSavings);
-
-            loadEquipmentPurchases(userEquipmentPurchases);
-            loadByproductPurchases(userByproductPurchases);
-        }
-
-        function loadEquipmentPurchases(purchases) {
-            const container = document.getElementById('equipment-purchases');
-            
-            if (purchases.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-tractor"></i>
-                        <h3>No Equipment Rentals</h3>
-                        <p>You haven't rented any equipment yet. Start exploring available equipment!</p>
-                        <a href="equipments.html" class="btn btn-primary" style="margin-top: 15px;">Browse Equipment</a>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = purchases.map(purchase => `
-                <div class="purchase-card">
-                    <div class="purchase-image">
-                        ${purchase.image ? 
-                            `<img src="${purchase.image}" alt="${purchase.name}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">` : 
-                            `<i class="fas fa-tractor"></i>`
-                        }
-                    </div>
-                    <div class="purchase-details">
-                        <h3 class="purchase-title">${purchase.name}</h3>
-                        <p class="purchase-description">${purchase.description}</p>
-                        <div class="purchase-meta">
-                            <div class="meta-item">
-                                <i class="fas fa-calendar"></i>
-                                <span>Rented on: ${new Date(purchase.rentalDate).toLocaleDateString()}</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-clock"></i>
-                                <span>Duration: ${purchase.duration} days</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>${purchase.location}</span>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <div class="purchase-price">₹${purchase.totalAmount}</div>
-                            <div class="purchase-status status-${purchase.status}">${purchase.status.charAt(0).toUpperCase() + purchase.status.slice(1)}</div>
-                        </div>
-                        <div class="purchase-actions">
-                            <button class="btn btn-outline" onclick="contactOwner('${purchase.ownerId}')">Contact Owner</button>
-                            ${purchase.status === 'active' ? 
-                                `<button class="btn btn-primary" onclick="extendRental('${purchase.id}')">Extend Rental</button>` : 
-                                `<button class="btn btn-primary" onclick="rentAgain('${purchase.equipmentId}')">Rent Again</button>`
-                            }
-                        </div>
-                    </div>
+    // Load equipment rentals
+    function loadEquipmentRentals() {
+        const container = document.getElementById('equipment-purchases');
+        const equipmentRentals = JSON.parse(localStorage.getItem('equipmentRentals') || '[]');
+        const userEquipmentRentals = equipmentRentals.filter(rental => rental.userId === currentUser.id);
+        
+        if (userEquipmentRentals.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-tractor"></i>
+                    <h3>No Equipment Rentals</h3>
+                    <p>You haven't rented any equipment yet. Start exploring available equipment!</p>
+                    <a href="equipments.html" class="btn btn-primary" style="margin-top: 15px;">Browse Equipment</a>
                 </div>
-            `).join('');
-        }
-
-        function loadByproductPurchases(purchases) {
-            const container = document.getElementById('byproduct-purchases');
-            
-            if (purchases.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-recycle"></i>
-                        <h3>No ByProduct Purchases</h3>
-                        <p>You haven't purchased any byproducts yet. Check out the marketplace!</p>
-                        <a href="byproducts.html" class="btn btn-primary" style="margin-top: 15px;">Browse ByProducts</a>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = purchases.map(purchase => `
-                <div class="purchase-card">
-                    <div class="purchase-image">
-                        ${purchase.image ? 
-                            `<img src="${purchase.image}" alt="${purchase.name}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">` : 
-                            `<i class="fas fa-recycle"></i>`
-                        }
-                    </div>
-                    <div class="purchase-details">
-                        <h3 class="purchase-title">${purchase.name}</h3>
-                        <p class="purchase-description">${purchase.description}</p>
-                        <div class="purchase-meta">
-                            <div class="meta-item">
-                                <i class="fas fa-calendar"></i>
-                                <span>Purchased on: ${new Date(purchase.purchaseDate).toLocaleDateString()}</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-weight"></i>
-                                <span>Quantity: ${purchase.quantity}</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>${purchase.location}</span>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <div class="purchase-price">₹${purchase.totalAmount}</div>
-                            <div class-></div>
-                        </div>
-                        <div class="purchase-actions">
-                            <button class="btn btn-outline" onclick="contactSeller('${purchase.ownerId}')">Contact Seller</button>
-                            <button class="btn btn-primary" onclick="buyAgain('${purchase.byproductId}')">Buy Again</button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // --- Action Functions ---
-
-        function contactOwner(ownerId) {
-            alert('Contact functionality would be implemented here. Owner ID: ' + ownerId);
-        }
-
-        function extendRental(rentalId) {
-            alert('Rental extension functionality would be implemented here. Rental ID: ' + rentalId);
-        }
-
-        function rentAgain(equipmentId) {
-            alert('Redirecting to equipment page to rent again. Equipment ID: ' + equipmentId);
-            window.location.href = 'equipments.html'; // Example redirect
-        }
-
-        function contactSeller(sellerId) {
-            alert('Contact functionality would be implemented here. Seller ID: ' + sellerId);
-        }
-
-        function buyAgain(byproductId) {
-            alert('Redirecting to byproducts page to buy again. ByProduct ID: ' + byproductId);
-            window.location.href = 'byproducts.html'; // Example redirect
+            `;
+            return;
         }
         
-        // Initial load
-        loadPurchaseData();
-    </script>
+        container.innerHTML = userEquipmentRentals.map(rental => `
+            <div class="purchase-card">
+                <div class="purchase-image">
+                    ${rental.image ? 
+                        `<img src="${rental.image}" alt="${rental.name}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">` : 
+                        `<i class="fas fa-tractor"></i>`
+                    }
+                </div>
+                <div class="purchase-details">
+                    <h3 class="purchase-title">${rental.name}</h3>
+                    <p class="purchase-description">${rental.description}</p>
+                    <div class="purchase-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>Rented on: ${new Date(rental.rentalDate).toLocaleDateString()}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Duration: ${rental.duration} days</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${rental.location}</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="purchase-price">₹${rental.totalAmount}</div>
+                        <div class="purchase-status status-${rental.status}">${rental.status.charAt(0).toUpperCase() + rental.status.slice(1)}</div>
+                    </div>
+                    <p class="purchase-owner">Rented from: ${rental.ownerName}</p>
+                    <div class="purchase-actions">
+                        <button class="btn btn-outline" onclick="contactOwner('${rental.ownerId}')">Contact Owner</button>
+                        ${rental.status === 'active' ? 
+                            `<button class="btn btn-primary" onclick="extendRental('${rental.id}')">Extend Rental</button>` : 
+                            `<button class="btn btn-primary" onclick="rentAgain('${rental.equipmentId}')">Rent Again</button>`
+                        }
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Load byproduct purchases
+    function loadByproductPurchases() {
+        const container = document.getElementById('byproduct-purchases');
+        const byproductPurchases = JSON.parse(localStorage.getItem('byproductPurchases') || '[]');
+        const userByproductPurchases = byproductPurchases.filter(purchase => purchase.userId === currentUser.id);
+        
+        if (userByproductPurchases.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-recycle"></i>
+                    <h3>No ByProduct Purchases</h3>
+                    <p>You haven't purchased any byproducts yet. Check out the marketplace!</p>
+                    <a href="byproducts.html" class="btn btn-primary" style="margin-top: 15px;">Browse ByProducts</a>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = userByproductPurchases.map(purchase => `
+            <div class="purchase-card">
+                <div class="purchase-image">
+                    ${purchase.image ? 
+                        `<img src="${purchase.image}" alt="${purchase.name}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">` : 
+                        `<i class="fas fa-recycle"></i>`
+                    }
+                </div>
+                <div class="purchase-details">
+                    <h3 class="purchase-title">${purchase.name}</h3>
+                    <p class="purchase-description">${purchase.description}</p>
+                    <div class="purchase-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>Purchased on: ${new Date(purchase.purchaseDate).toLocaleDateString()}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-weight"></i>
+                            <span>Quantity: ${purchase.quantity}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${purchase.location}</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="purchase-price">₹${purchase.totalAmount}</div>
+                        <div class="purchase-status status-${purchase.status}">${purchase.status.charAt(0).toUpperCase() + purchase.status.slice(1)}</div>
+                    </div>
+                    <p class="purchase-owner">Purchased from: ${purchase.ownerName}</p>
+                    <div class="purchase-actions">
+                        <button class="btn btn-outline" onclick="contactSeller('${purchase.ownerId}')">Contact Seller</button>
+                        <button class="btn btn-primary" onclick="buyAgain('${purchase.byproductId}')">Buy Again</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Action functions
+    function contactOwner(ownerId) {
+        alert('Contact functionality would be implemented here. Owner ID: ' + ownerId);
+    }
+
+    function extendRental(rentalId) {
+        const equipmentRentals = JSON.parse(localStorage.getItem('equipmentRentals') || '[]');
+        const rental = equipmentRentals.find(r => r.id === rentalId);
+        
+        if (rental) {
+            const extraDays = prompt('Enter additional days to extend rental:', '3');
+            if (extraDays && !isNaN(extraDays) && extraDays > 0) {
+                const extraCost = (rental.totalAmount / rental.duration) * parseInt(extraDays);
+                const confirmExtend = confirm(`Extend rental by ${extraDays} days for ₹${extraCost}?`);
+                
+                if (confirmExtend) {
+                    rental.duration += parseInt(extraDays);
+                    rental.totalAmount += extraCost;
+                    localStorage.setItem('equipmentRentals', JSON.stringify(equipmentRentals));
+                    loadEquipmentRentals();
+                    alert('Rental extended successfully!');
+                }
+            }
+        }
+    }
+
+    function rentAgain(equipmentId) {
+        // In a real app, this would redirect to the equipment page
+        alert('Redirecting to equipment page to rent again.');
+        window.location.href = 'equipments.html';
+    }
+
+    function contactSeller(sellerId) {
+        alert('Contact functionality would be implemented here. Seller ID: ' + sellerId);
+    }
+
+    function buyAgain(byproductId) {
+        // In a real app, this would redirect to the byproducts page
+        alert('Redirecting to byproducts page to buy again.');
+        window.location.href = 'byproducts.html';
+    }
+
+    // Initial load
+    loadPurchaseData();
+</script>
     <script src="chatbot-integration.js"></script>
 </body>
 </html>

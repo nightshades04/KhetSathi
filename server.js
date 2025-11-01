@@ -11,20 +11,37 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000'],
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000', 'https://your-render-app.onrender.com'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.static(path.join(__dirname, 'public')));
 
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb+srv://nightshades257:SDb3O4aHBkVxF1Rx@cluster0.4pqhdrv.mongodb.net/khetsathi?retryWrites=true&w=majority&appName=Cluster0', {
+// Only serve static files if the directory exists
+try {
+  app.use(express.static(path.join(__dirname, 'public')));
+  console.log('Static files serving enabled from public directory');
+} catch (error) {
+  console.log('Public directory not found, static files disabled');
+}
+
+// MongoDB connection with better error handling
+const MONGODB_URI = process.env.MONGO_URI || 'mongodb+srv://nightshades257:SDb3O4aHBkVxF1Rx@cluster0.4pqhdrv.mongodb.net/khetsathi?retryWrites=true&w=majority&appName=Cluster0';
+
+mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+  socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
 })
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.log('MongoDB connection error:', err));
+.then(() => console.log('MongoDB connected successfully'))
+.catch(err => {
+  console.log('MongoDB connection error:', err.message);
+  console.log('Please make sure:');
+  console.log('1. Your IP is whitelisted in MongoDB Atlas');
+  console.log('2. MongoDB Atlas cluster is running');
+  console.log('3. Database user credentials are correct');
+});
 
 // User Schema
 const userSchema = new mongoose.Schema({
@@ -105,10 +122,12 @@ const authenticateToken = (req, res, next) => {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected';
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+    database: dbStatus,
+    message: 'KhetSathi API Server is running'
   });
 });
 
@@ -501,16 +520,6 @@ app.get('/api/quiz/:type', authenticateToken, async (req, res) => {
             "Eliminating all pesticide use"
           ],
           correct: 1
-        },
-        {
-          question: "Which practice helps improve soil health?",
-          options: [
-            "Monocropping",
-            "Crop rotation",
-            "Excessive tilling",
-            "Using synthetic fertilizers only"
-          ],
-          correct: 1
         }
       ],
       water: [
@@ -580,11 +589,11 @@ app.post('/api/quiz/submit', authenticateToken, async (req, res) => {
 app.get('/api/quiz/stats', authenticateToken, async (req, res) => {
   try {
     const userStats = {
-      quizzesTaken: 5,
-      averageScore: 78,
-      pointsEarned: 195,
-      correctAnswers: 39,
-      totalQuestions: 50
+      quizzesTaken: 0,
+      averageScore: 0,
+      pointsEarned: 0,
+      correctAnswers: 0,
+      totalQuestions: 0
     };
     
     res.json(userStats);
@@ -694,20 +703,6 @@ app.get('/api/community/channels', authenticateToken, async (req, res) => {
         description: 'Talk about anything related to farming',
         icon: 'fas fa-comments',
         members: 42
-      },
-      {
-        id: 'equipment',
-        name: 'Equipment Sharing',
-        description: 'Discuss equipment rental and sharing',
-        icon: 'fas fa-tractor',
-        members: 28
-      },
-      {
-        id: 'byproducts',
-        name: 'ByProducts Market',
-        description: 'Buy and sell agricultural byproducts',
-        icon: 'fas fa-seedling',
-        members: 35
       }
     ];
     
@@ -828,7 +823,7 @@ app.get('/api/greenpoints', authenticateToken, async (req, res) => {
         renting: rentingPoints
       },
       stats: {
-        quizzesTaken: user.quizzesTaken || 0,
+        quizzesTaken: 0,
         byproductsSold: byproductListings.length,
         equipmentRented: equipmentListings.length
       },
@@ -904,9 +899,19 @@ app.get('/api/greenpoints/leaderboard', authenticateToken, async (req, res) => {
   }
 });
 
-// Serve the main page
+// Serve the main page - handle missing file gracefully
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.json({ 
+    message: 'KhetSathi API Server is running!',
+    endpoints: {
+      health: '/api/health',
+      auth: ['/api/signup', '/api/login'],
+      equipment: '/api/equipment',
+      byproducts: '/api/byproducts',
+      user: '/api/user'
+    },
+    status: 'API Server Ready'
+  });
 });
 
 // Error handling middleware
@@ -923,5 +928,6 @@ app.use('*', (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Health check available at: http://localhost:${PORT}/api/health`);
+  console.log(`Health check: http://localhost:${PORT}/api/health`);
+  console.log(`API Documentation: http://localhost:${PORT}/`);
 });
